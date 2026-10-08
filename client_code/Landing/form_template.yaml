@@ -1,5 +1,21 @@
 components:
-- components: []
+- components:
+  - layout_properties: {grid_position: 'VXSRIQ,YNCSAH'}
+    name: label_2
+    properties:
+      text: |-
+        TEACHERS: Select 'Create New Simulation' to create a simulation, or click 'Open Simulation' to open an already existing simulation
+
+        STUDENTS: Select 'Open Simulation'.
+    type: Label
+  - layout_properties: {grid_position: 'PDHQZT,UTGAWV'}
+    name: createButton
+    properties: {align: full, role: outlined-button, text: Create New Simulation}
+    type: Button
+  - layout_properties: {grid_position: 'PDHQZT,TXFPUX'}
+    name: loadButton
+    properties: {align: full, role: outlined-button, text: Open Simulation}
+    type: Button
   layout_properties: {slot: default}
   name: content_panel
   properties: {col_widths: '{}'}
@@ -8,6 +24,10 @@ components:
   name: navbar_links
   properties: {}
   type: FlowPanel
+- layout_properties: {slot: title}
+  name: label_1
+  properties: {text: Stock Market Simulation}
+  type: Label
 container:
   properties: {html: '@theme:standard-page.html'}
   type: HtmlTemplate

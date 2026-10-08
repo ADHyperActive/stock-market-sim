@@ -1,5 +1,101 @@
 allow_embedding: false
-dependencies: []
+db_schema:
+  simulations:
+    client: none
+    columns:
+    - admin_ui: {order: 0, width: 200}
+      client_hidden: false
+      name: teacher_email
+      type: string
+    - admin_ui: {order: 1, width: 200}
+      client_hidden: false
+      name: simcode
+      type: string
+    - admin_ui: {order: 2, width: 200}
+      client_hidden: false
+      name: active
+      type: bool
+    - admin_ui: {order: 3, width: 200}
+      client_hidden: false
+      name: open
+      type: bool
+    - admin_ui: {order: 4, width: 200}
+      client_hidden: false
+      name: teacher_key
+      type: string
+    indexes: []
+    server: full
+    title: Simulations
+  student_data:
+    client: none
+    columns:
+    - admin_ui: {order: 0, width: 200}
+      client_hidden: false
+      name: email
+      type: string
+    - admin_ui: {order: 1, width: 200}
+      client_hidden: false
+      name: class_period
+      type: string
+    - admin_ui: {order: 2, width: 200}
+      client_hidden: false
+      name: active
+      type: bool
+    - admin_ui: {order: 3, width: 200}
+      client_hidden: false
+      name: start_cash
+      type: number
+    - admin_ui: {order: 4, width: 200}
+      client_hidden: false
+      name: cash_balance
+      type: number
+    - admin_ui: {order: 5, width: 200}
+      client_hidden: false
+      name: holdings_value
+      type: number
+    - admin_ui: {order: 6, width: 200}
+      client_hidden: false
+      name: total_value
+      type: number
+    - admin_ui: {order: 7, width: 200}
+      client_hidden: false
+      name: gain_loss
+      type: number
+    - admin_ui: {order: 8, width: 200}
+      client_hidden: false
+      name: return
+      type: number
+    - admin_ui: {order: 9, width: 200}
+      client_hidden: false
+      name: rank
+      type: number
+    - admin_ui: {order: 10, width: 200}
+      client_hidden: false
+      name: last_trade
+      type: string
+    - admin_ui: {order: 11, width: 200}
+      client_hidden: false
+      name: valuation_time
+      type: datetime
+    - admin_ui: {order: 12, width: 200}
+      client_hidden: false
+      name: market_data_status
+      type: string
+    - admin_ui: {order: 13, width: 200}
+      client_hidden: false
+      name: simcode
+      type: string
+    - admin_ui: {order: 14, width: 200}
+      client_hidden: false
+      name: student_key
+      type: string
+    indexes: []
+    server: full
+    title: Student Data
+dependencies:
+- dep_id: dep_1dbah15vywzyh
+  resolution_hints: {app_id: C6ZZPAPN4YYF5NVJ, name: Anvil Extras, package_name: anvil_extras}
+  version: {version_tag: v3.6.3}
 metadata: {title: Stock Market Sim}
 name: Stock Market Sim
 package_name: Stock_Market_Sim

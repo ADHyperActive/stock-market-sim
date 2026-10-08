@@ -1,4 +1,24 @@
 <anvil-form container="HtmlTemplate" prop:html="@theme:standard-page.html">
-  <anvil-component type="ColumnPanel" name="content_panel" container:slot="default"></anvil-component>
+  <anvil-component type="ColumnPanel" name="content_panel" container:slot="default">
+    <anvil-component type="ColumnPanel" name="outlined_card_1" prop:role="outlined-card" container:grid_position="CYBJDB,EMCNUM">
+      <anvil-component type="Label" name="label_2" prop:text="Total Value:" container:grid_position="GWWIPF,OMOCOB"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_2" prop:role="outlined-card" container:grid_position="CYBJDB,RYLNHO">
+      <anvil-component type="Label" name="label_3" prop:text="Cash:" container:grid_position="HZTZHY,ZUJYSK"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_3" prop:role="outlined-card" container:grid_position="CYBJDB,FXFGBX">
+      <anvil-component type="Label" name="label_4" prop:text="Holdings:" container:grid_position="CCCHRB,WNJKZB"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_4" prop:role="outlined-card" container:grid_position="CYBJDB,HVBQYR">
+      <anvil-component type="Label" name="label_5" container:grid_position="ZHMHBX,LXISMJ"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_5" prop:role="outlined-card" container:grid_position="CYBJDB,IDHYCP">
+      <anvil-component type="Label" name="label_6" container:grid_position="EFNJPH,HGURHW"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_6" prop:role="outlined-card" container:grid_position="CYBJDB,EQNZBR">
+      <anvil-component type="Label" name="label_7" container:grid_position="ANNJTM,OIYNGU"></anvil-component>
+    </anvil-component>
+  </anvil-component>
   <anvil-component type="FlowPanel" name="navbar_links" container:slot="nav-right"></anvil-component>
+  <anvil-component type="Label" name="label_1" prop:text="Stock Market Simulation - Student Portal" container:slot="title"></anvil-component>
 </anvil-form>
