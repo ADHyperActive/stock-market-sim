@@ -1,22 +1,33 @@
 <anvil-form container="HtmlTemplate" prop:html="@theme:standard-page.html">
-  <anvil-component type="ColumnPanel" name="content_panel" container:slot="default">
+  <anvil-component type="ColumnPanel" name="content_panel" prop:col_widths='"{\"TSFXMN\":40,\"LHSGYJ\":20}"' container:slot="default">
     <anvil-component type="ColumnPanel" name="outlined_card_1" prop:role="outlined-card" container:grid_position="CYBJDB,EMCNUM">
-      <anvil-component type="Label" name="label_2" prop:text="Total Value:" container:grid_position="GWWIPF,OMOCOB"></anvil-component>
+      <anvil-component type="Label" name="label_2" prop:text="Total Value:" prop:bold="true" container:grid_position="GWWIPF,OMOCOB"></anvil-component>
     </anvil-component>
     <anvil-component type="ColumnPanel" name="outlined_card_2" prop:role="outlined-card" container:grid_position="CYBJDB,RYLNHO">
-      <anvil-component type="Label" name="label_3" prop:text="Cash:" container:grid_position="HZTZHY,ZUJYSK"></anvil-component>
+      <anvil-component type="Label" name="label_3" prop:text="Cash:" prop:bold="true" container:grid_position="HZTZHY,ZUJYSK"></anvil-component>
     </anvil-component>
     <anvil-component type="ColumnPanel" name="outlined_card_3" prop:role="outlined-card" container:grid_position="CYBJDB,FXFGBX">
-      <anvil-component type="Label" name="label_4" prop:text="Holdings:" container:grid_position="CCCHRB,WNJKZB"></anvil-component>
+      <anvil-component type="Label" name="label_4" prop:text="Holdings:" prop:bold="true" container:grid_position="CCCHRB,WNJKZB"></anvil-component>
     </anvil-component>
     <anvil-component type="ColumnPanel" name="outlined_card_4" prop:role="outlined-card" container:grid_position="CYBJDB,HVBQYR">
-      <anvil-component type="Label" name="label_5" container:grid_position="ZHMHBX,LXISMJ"></anvil-component>
+      <anvil-component type="Label" name="label_5" prop:text="Return:" prop:bold="true" container:grid_position="ZHMHBX,LXISMJ"></anvil-component>
     </anvil-component>
     <anvil-component type="ColumnPanel" name="outlined_card_5" prop:role="outlined-card" container:grid_position="CYBJDB,IDHYCP">
-      <anvil-component type="Label" name="label_6" container:grid_position="EFNJPH,HGURHW"></anvil-component>
+      <anvil-component type="Label" name="label_6" prop:text="Dollar gain/loss:" prop:bold="true" container:grid_position="EFNJPH,HGURHW"></anvil-component>
     </anvil-component>
     <anvil-component type="ColumnPanel" name="outlined_card_6" prop:role="outlined-card" container:grid_position="CYBJDB,EQNZBR">
-      <anvil-component type="Label" name="label_7" container:grid_position="ANNJTM,OIYNGU"></anvil-component>
+      <anvil-component type="Label" name="label_7" prop:text="Class rank:" prop:bold="true" container:grid_position="ANNJTM,OIYNGU"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_7" prop:role="outlined-card" container:grid_position="ZRKATH,TSFXMN NPQGBJ,SSMNHD">
+      <anvil-component type="Label" name="label_8" prop:text="Current holdings" prop:bold="true" container:grid_position="PFLLBD,YWUGHA"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_10" prop:role="outlined-card" container:grid_position="ZRKATH,TSFXMN XPSJUT,CZENLP">
+      <anvil-component type="Label" name="label_10" prop:text="Return over time" prop:bold="true" container:grid_position="TCJOAA,EIOYLA"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_9" prop:role="outlined-card" container:grid_position="ZRKATH,LHSGYJ">
+      <anvil-component type="Label" name="label_9" prop:text="Place an order" prop:bold="true" container:grid_position="JHOSMB,JCQCWN"></anvil-component>
+      <anvil-component type="Label" name="label_11" prop:text="Order type:" container:grid_position="YHSJIJ,ZIFSWS"></anvil-component>
+      <anvil-component type="DropDown" name="orderType" prop:items='["BUY","SELL"]' container:grid_position="ZFNNCN,VXOLTU"></anvil-component>
     </anvil-component>
   </anvil-component>
   <anvil-component type="FlowPanel" name="navbar_links" container:slot="nav-right"></anvil-component>
