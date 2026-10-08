@@ -23,6 +23,10 @@ db_schema:
       client_hidden: false
       name: teacher_key
       type: string
+    - admin_ui: {order: 5, width: 200}
+      client_hidden: false
+      name: config
+      type: simpleObject
     indexes: []
     server: full
     title: Simulations
