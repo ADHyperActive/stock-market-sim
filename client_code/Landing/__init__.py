@@ -1,7 +1,8 @@
-from ._anvil_designer import Form1Template
+from ._anvil_designer import LandingTemplate
 from anvil import *
+import anvil.server
 
-class Form1(Form1Template):
+class Landing(LandingTemplate):
   def __init__(self, **properties):
     # Set Form properties and Data Bindings.
     super().__init__(**properties)

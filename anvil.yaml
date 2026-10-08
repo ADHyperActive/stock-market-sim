@@ -1,12 +1,17 @@
 allow_embedding: false
 dependencies: []
-name: M3 App 1
-package_name: M3_App_1
+metadata: {title: Stock Market Sim}
+name: Stock Market Sim
+package_name: Stock_Market_Sim
 renamed: true
 runtime_options:
   client_version: '3'
   legacy_features: {bootstrap3: true, class_names: true}
   server_spec: {base: python314}
   version: 3
-services: []
-startup_form: Form1
+services:
+- client_config: {enable_v2: true}
+  server_config: {}
+  source: /runtime/services/tables.yml
+startup: {module: Landing, type: form}
+startup_form: null
