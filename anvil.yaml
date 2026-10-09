@@ -1,7 +1,7 @@
 allow_embedding: false
 db_schema:
   simulations:
-    client: none
+    client: full
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
@@ -32,7 +32,7 @@ db_schema:
     server: full
     title: Simulations
   student_data:
-    client: none
+    client: full
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
@@ -42,7 +42,7 @@ db_schema:
       client_hidden: false
       name: class_period
       type: string
-    - admin_ui: {width: 200}
+    - admin_ui: {order: 0.5, width: 200}
       client_hidden: false
       name: active
       type: bool
@@ -102,7 +102,7 @@ db_schema:
     server: full
     title: Student Data
   transactions:
-    client: none
+    client: full
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
@@ -238,7 +238,7 @@ db_schema:
     server: full
     title: Transactions
   users:
-    client: none
+    client: search
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
