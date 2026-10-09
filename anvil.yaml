@@ -3,34 +3,34 @@ db_schema:
   simulations:
     client: none
     columns:
-    - admin_ui: {order: 0, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: teacher_email
       type: string
-    - admin_ui: {order: 1, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: simcode
       type: string
-    - admin_ui: {order: 2, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: active
       type: bool
-    - admin_ui: {order: 3, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: open
       type: bool
-    - admin_ui: {order: 4, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
-      name: teacher_key
+      name: teacher_pw
       type: string
-    - admin_ui: {order: 5, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: config
       type: simpleObject
-    - admin_ui: {order: 6, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: settingsRow
-      target: simsettings
+      target: null
       type: link_single
     indexes: []
     server: full
@@ -38,69 +38,213 @@ db_schema:
   student_data:
     client: none
     columns:
-    - admin_ui: {order: 0, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: email
       type: string
-    - admin_ui: {order: 1, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: class_period
       type: string
-    - admin_ui: {order: 2, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: active
       type: bool
-    - admin_ui: {order: 3, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: start_cash
       type: number
-    - admin_ui: {order: 4, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: cash_balance
       type: number
-    - admin_ui: {order: 5, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: holdings_value
       type: number
-    - admin_ui: {order: 6, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: total_value
       type: number
-    - admin_ui: {order: 7, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: gain_loss
       type: number
-    - admin_ui: {order: 8, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: return
       type: number
-    - admin_ui: {order: 9, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: rank
       type: number
-    - admin_ui: {order: 10, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: last_trade
       type: string
-    - admin_ui: {order: 11, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: valuation_time
       type: datetime
-    - admin_ui: {order: 12, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: market_data_status
       type: string
-    - admin_ui: {order: 13, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
       name: simcode
       type: string
-    - admin_ui: {order: 14, width: 200}
+    - admin_ui: {width: 200}
       client_hidden: false
-      name: student_key
+      name: student_pw
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: first_name
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: last_name
       type: string
     indexes: []
     server: full
     title: Student Data
+  transactions:
+    client: none
+    columns:
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: simulation
+      target: simulations
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: student
+      target: student_data
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: submitted_at
+      type: datetime
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: executed_at
+      type: datetime
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: side
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: ticker
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: shares
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: execution_price
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: gross_amount
+      type: number
+    - admin_ui: {order: 9, width: 200}
+      client_hidden: false
+      name: commission
+      type: number
+    - admin_ui: {order: 10, width: 200}
+      client_hidden: false
+      name: cash_after
+      type: number
+    - admin_ui: {order: 11, width: 200}
+      client_hidden: false
+      name: shares_after
+      type: number
+    - admin_ui: {order: 12, width: 200}
+      client_hidden: false
+      name: gain_loss
+      type: number
+    - admin_ui: {order: 13, width: 200}
+      client_hidden: false
+      name: status
+      type: string
+    - admin_ui: {order: 14, width: 200}
+      client_hidden: false
+      name: message
+      type: string
+    - admin_ui: {order: 15, width: 200}
+      client_hidden: false
+      name: channel
+      type: string
+    - admin_ui: {order: 16, width: 200}
+      client_hidden: false
+      name: quote_time
+      type: datetime
+    - admin_ui: {order: 17, width: 200}
+      client_hidden: false
+      name: quote_age_sec
+      type: number
+    - admin_ui: {order: 18, width: 200}
+      client_hidden: false
+      name: order_note
+      type: string
+    - admin_ui: {order: 19, width: 200}
+      client_hidden: false
+      name: request_id
+      type: string
+    - admin_ui: {order: 20, width: 200}
+      client_hidden: false
+      name: market_state
+      type: string
+    - admin_ui: {order: 21, width: 200}
+      client_hidden: false
+      name: data_source
+      type: string
+    - admin_ui: {order: 22, width: 200}
+      client_hidden: false
+      name: price_retrieved
+      type: number
+    - admin_ui: {order: 23, width: 200}
+      client_hidden: false
+      name: price_classification
+      type: string
+    - admin_ui: {order: 24, width: 200}
+      client_hidden: false
+      name: prior_close
+      type: string
+    - admin_ui: {order: 25, width: 200}
+      client_hidden: false
+      name: cash_before
+      type: number
+    - admin_ui: {order: 26, width: 200}
+      client_hidden: false
+      name: shares_before
+      type: number
+    - admin_ui: {order: 27, width: 200}
+      client_hidden: false
+      name: avg_cost_before
+      type: number
+    - admin_ui: {order: 28, width: 200}
+      client_hidden: false
+      name: avg_cost_after
+      type: number
+    - admin_ui: {order: 29, width: 200}
+      client_hidden: false
+      name: existed_before
+      type: bool
+    - admin_ui: {order: 30, width: 200}
+      client_hidden: false
+      name: prepared_at
+      type: datetime
+    - admin_ui: {order: 31, width: 200}
+      client_hidden: false
+      name: completed_at
+      type: datetime
+    indexes: []
+    server: full
+    title: Transactions
 dependencies:
 - dep_id: dep_1dbah15vywzyh
   resolution_hints: {app_id: C6ZZPAPN4YYF5NVJ, name: Anvil Extras, package_name: anvil_extras}

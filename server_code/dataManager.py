@@ -15,3 +15,12 @@ import anvil.server
 #   print("Hello, " + name + "!")
 #   return 42
 #
+
+@anvil.server.callable
+def session_store(address, data):
+  anvil.server.session[address] = data
+
+@anvil.server.callable
+def session_get(address):
+  data = anvil.server.session.get(address)
+  return data
