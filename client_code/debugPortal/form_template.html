@@ -1,0 +1,61 @@
+<anvil-form container="HtmlTemplate" prop:html="@theme:standard-page.html">
+  <anvil-component type="ColumnPanel" name="content_panel" prop:col_widths='"{\"TSFXMN\":40,\"LHSGYJ\":20}"' container:slot="default">
+    <anvil-component type="ColumnPanel" name="outlined_card_11" prop:role="outlined-card" prop:border="" prop:background="" prop:foreground="red" container:grid_position="UBWYDA,CIGGDU">
+      <anvil-component type="Label" name="label_16" prop:text="Debug Menu:" prop:bold="true" prop:foreground="" container:grid_position="SLKDCK,XWGFTR"></anvil-component>
+      <anvil-component type="Label" name="label_17" prop:text="Select User:" container:grid_position="ARQTNF,UCIKJL"></anvil-component>
+      <anvil-component type="DropDown" name="userSelectDropdown" container:grid_position="ARQTNF,OOSYOM"></anvil-component>
+      <anvil-component type="Label" name="label_18" prop:text="New User:" container:grid_position="QZPSCP,ZALJBW"></anvil-component>
+      <anvil-component type="TextBox" name="testUserEmail" prop:placeholder="name@test.user" container:grid_position="QZPSCP,RIQXQJ"></anvil-component>
+      <anvil-component type="Button" name="createNewUserButton" prop:text="Create new user" prop:role="outlined-button" prop:align="full" container:grid_position="QZPSCP,UIMLMV"></anvil-component>
+      <anvil-component type="Button" name="applyButton" prop:text="Apply Changes" prop:role="outlined-button" prop:align="full" container:grid_position="VUNOXZ,CHIAHN"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_1" prop:role="outlined-card" container:grid_position="CYBJDB,EMCNUM">
+      <anvil-component type="Label" name="label_2" prop:text="Total Value:" prop:bold="true" container:grid_position="GWWIPF,OMOCOB"></anvil-component>
+      <anvil-component type="Label" name="valueBox" container:grid_position="GZOVPL,POOGXN"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_2" prop:role="outlined-card" container:grid_position="CYBJDB,RYLNHO">
+      <anvil-component type="Label" name="label_3" prop:text="Cash:" prop:bold="true" container:grid_position="HZTZHY,ZUJYSK"></anvil-component>
+      <anvil-component type="Label" name="cashBox" container:grid_position="OOBQEG,GGGSBQ"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_3" prop:role="outlined-card" container:grid_position="CYBJDB,FXFGBX">
+      <anvil-component type="Label" name="label_4" prop:text="Holdings:" prop:bold="true" container:grid_position="CCCHRB,WNJKZB"></anvil-component>
+      <anvil-component type="Label" name="holdingsBox" container:grid_position="GEGMZJ,WHEZKR"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_4" prop:role="outlined-card" container:grid_position="CYBJDB,HVBQYR">
+      <anvil-component type="Label" name="label_5" prop:text="Return:" prop:bold="true" container:grid_position="ZHMHBX,LXISMJ"></anvil-component>
+      <anvil-component type="Label" name="returnBox" container:grid_position="JEWSWM,KQAPLR"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_5" prop:role="outlined-card" container:grid_position="CYBJDB,IDHYCP">
+      <anvil-component type="Label" name="label_6" prop:text="Dollar gain/loss:" prop:bold="true" container:grid_position="EFNJPH,HGURHW"></anvil-component>
+      <anvil-component type="Label" name="gainLossBox" container:grid_position="LQNXUX,HLWSHO"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_6" prop:role="outlined-card" container:grid_position="CYBJDB,EQNZBR">
+      <anvil-component type="Label" name="label_7" prop:text="Class rank:" prop:bold="true" container:grid_position="ANNJTM,OIYNGU"></anvil-component>
+      <anvil-component type="Label" name="rankBox" container:grid_position="WBRSNP,HRDLRK"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_7" prop:role="outlined-card" container:grid_position="ZRKATH,TSFXMN NPQGBJ,SSMNHD">
+      <anvil-component type="Label" name="label_8" prop:text="Current holdings" prop:bold="true" container:grid_position="PFLLBD,YWUGHA"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_10" prop:role="outlined-card" container:grid_position="ZRKATH,TSFXMN XPSJUT,CZENLP">
+      <anvil-component type="Label" name="label_10" prop:text="Return over time" prop:bold="true" container:grid_position="TCJOAA,EIOYLA"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_8" prop:role="outlined-card" container:grid_position="ZRKATH,TSFXMN NZHXSM,ZIQCUB">
+      <anvil-component type="Label" name="label_15" prop:text="Recent orders" prop:bold="true" container:grid_position="JBFFNV,MLBWBR"></anvil-component>
+    </anvil-component>
+    <anvil-component type="ColumnPanel" name="outlined_card_9" prop:role="outlined-card" container:grid_position="ZRKATH,LHSGYJ">
+      <anvil-component type="Label" name="label_9" prop:text="Place an order" prop:bold="true" container:grid_position="JHOSMB,JCQCWN"></anvil-component>
+      <anvil-component type="Label" name="label_11" prop:text="Order type:" prop:bold="true" container:grid_position="YHSJIJ,ZIFSWS"></anvil-component>
+      <anvil-component type="DropDown" name="orderType" prop:items='["BUY","SELL"]' container:grid_position="ZFNNCN,VXOLTU"></anvil-component>
+      <anvil-component type="Label" name="label_12" prop:text="Ticker:" prop:bold="true" container:grid_position="FRAZUW,DLKKQV"></anvil-component>
+      <anvil-component type="TextBox" name="tickerBox" container:grid_position="JPYZMD,ZKZPEG"></anvil-component>
+      <anvil-component type="anvil_extras.MessagePill" name="tickerPill" prop:level="info" prop:message="Enter any U.S. stock or ETF ticker." container:grid_position="LTDFCI,PDIVKZ"></anvil-component>
+      <anvil-component type="Label" name="label_13" prop:text="Shares:" prop:bold="true" container:grid_position="DKIASD,GUENZX"></anvil-component>
+      <anvil-component type="TextBox" name="sharesBox" container:grid_position="UVORAX,BPGPVT"></anvil-component>
+      <anvil-component type="Label" name="label_14" prop:text="Order note or source:" prop:bold="true" container:grid_position="ZGUZKA,MURMEG"></anvil-component>
+      <anvil-component type="TextBox" name="noteBox" container:grid_position="NKYIRL,WXSXWM" container:full_width_row="false"></anvil-component>
+      <anvil-component type="Button" name="submitButton" prop:text="Submit Order" prop:role="outlined-button" prop:align="full" container:grid_position="DLHBKW,FACFDC"></anvil-component>
+    </anvil-component>
+  </anvil-component>
+  <anvil-component type="FlowPanel" name="navbar_links" container:slot="nav-right"></anvil-component>
+  <anvil-component type="Label" name="label_1" prop:text="Stock Market Simulation - Debug Portal" container:slot="title"></anvil-component>
+</anvil-form>
