@@ -26,3 +26,11 @@ def session_store(address, data):
 def session_get(address):
   data = anvil.server.session.get(address)
   return data
+
+@anvil.server.callable
+def get_alpaca_key():
+  return anvil.secrets.get_secret('alpaca_api')
+
+@anvil.server.callable
+def get_alpaca_secret():
+  return anvil.secrets.get_secret('alpaca_secret')
