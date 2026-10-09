@@ -1,0 +1,19 @@
+<anvil-form container="HtmlTemplate" prop:html="@theme:standard-page.html">
+  <anvil-component type="ColumnPanel" name="content_panel" container:slot="default">
+    <anvil-component type="Label" name="label_2" prop:text="Open Trading" prop:align="left" container:grid_position="CNUAEX,JGBKMH"></anvil-component>
+    <anvil-component type="anvil_extras.Switch" name="tradingOpen" container:grid_position="CNUAEX,XSJHWN"></anvil-component>
+    <anvil-component type="Label" name="label_3" prop:text="Commission per trade" container:grid_position="VRUTTM,VVANTS"></anvil-component>
+    <anvil-component type="TextBox" name="commissionPerTrade" container:grid_position="VRUTTM,KUHYDI"></anvil-component>
+    <anvil-component type="Label" name="label_4" prop:text="Quote refresh minutes" container:grid_position="MTJPRE,VLSGZX"></anvil-component>
+    <anvil-component type="TextBox" name="quoteRefreshMinutes" container:grid_position="MTJPRE,OFWIOF"></anvil-component>
+    <anvil-component type="Label" name="label_5" prop:text="Quote refresh seconds" container:grid_position="DFTUJU,DLDAMU"></anvil-component>
+    <anvil-component type="TextBox" name="quoteRefreshSeconds" container:grid_position="DFTUJU,AJYEZI"></anvil-component>
+    <anvil-component type="Label" name="label_6" prop:text="Delayed sip max age seconds" container:grid_position="OTOUUL,RRHLFY"></anvil-component>
+    <anvil-component type="TextBox" name="delayedSipMaxAgeSeconds" container:grid_position="OTOUUL,HLSBSZ"></anvil-component>
+    <anvil-component type="Label" name="label_7" prop:text="Benchmark ticker" container:grid_position="XUGYQH,YCXJQD"></anvil-component>
+    <anvil-component type="TextBox" name="benchmarkTicker" container:grid_position="XUGYQH,HJHLBG"></anvil-component>
+    <anvil-component type="Button" name="applyButton" prop:text="Apply Settings" prop:role="outlined-button" container:grid_position="GKNPDJ,KGFZOP"></anvil-component>
+  </anvil-component>
+  <anvil-component type="FlowPanel" name="navbar_links" container:slot="nav-right"></anvil-component>
+  <anvil-component type="Label" name="label_1" prop:text="Simulation Settings" container:slot="title"></anvil-component>
+</anvil-form>
