@@ -21,10 +21,6 @@ db_schema:
       type: bool
     - admin_ui: {width: 200}
       client_hidden: false
-      name: teacher_pw
-      type: string
-    - admin_ui: {width: 200}
-      client_hidden: false
       name: config
       type: simpleObject
     - admin_ui: {width: 200}
@@ -93,10 +89,6 @@ db_schema:
     - admin_ui: {width: 200}
       client_hidden: false
       name: simcode
-      type: string
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: student_pw
       type: string
     - admin_ui: {width: 200}
       client_hidden: false
