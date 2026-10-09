@@ -12,4 +12,5 @@ unique_ids:
   modules: {}
   scripts: {}
   server_modules:
+    auth: JYKSCTSQ6TGFYE4SIGESLZ4NWPP2P475
     dataManager: '1791462449583247298287918.25693'

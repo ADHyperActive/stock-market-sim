@@ -250,9 +250,24 @@ runtime_options:
   legacy_features: {bootstrap3: true, class_names: true}
   server_spec: {base: python314}
   version: 3
+secrets:
+  alpaca_api:
+    type: secret
+    value:
+      YFC3LY7E7I2IYXS2: {? '' : ktYUqA731bIQxP7Xnn6opSPdcqM/npWv7tNsa2IMEnZjceT/eUrDN3zKQo60MOjUw2Ai3s935X95aLf3ajvutkW+AO/gHOYuoKjcZSRBa1msBxV5F6Q0OiaTWepuLRsbisxGTupNezr5CckR3VkA1IsUQUuwX4mpg1zWUelRiytm/MBntqFPJ/7lFhDJwJRj2GuYWWL6TycVvLMAeaTKOP8e+yRI}
+  alpaca_secret:
+    type: secret
+    value:
+      YFC3LY7E7I2IYXS2: {? '' : g5XOB/hkXHPxkF5cJsTgidRO+zO9fyJhJ1c22jzlPjsYK48CQvk1Zm0+IrpJWIjFW5LNndmg8CgB1WY3asZY5//uxPeqvw9wGzfTQvRb9n3YsUd5Z0dDMTx0aWOPW+dU/aMGzQECBIAnH5lm8cAjzIFcE4a2WZ0iujiO5lPy/uYoSKhIDAxSwQAtrP3WjuDKBM7qvYEDun32HkVgAq1JlnCz1/6NRAD3xope6C8C/SGeILNPBjGoed2k}
 services:
 - client_config: {enable_v2: true}
   server_config: {}
   source: /runtime/services/tables.yml
+- client_config: {allow_signup: false, confirm_email: true, enable_automatically: true, use_email: true}
+  server_config: {user_table: users}
+  source: /runtime/services/anvil/users.yml
+- client_config: {}
+  server_config: {}
+  source: /runtime/services/anvil/secrets.yml
 startup: {module: Landing, type: form}
 startup_form: null

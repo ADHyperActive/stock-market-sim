@@ -1,3 +1,4 @@
+import anvil.secrets
 """Simulation accounts: login identity plus per-simulation roles.
 
 Identity always comes from the Anvil Users service (passwords are hashed by
