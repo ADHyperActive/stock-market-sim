@@ -13,3 +13,14 @@ class Landing(LandingTemplate):
     super().__init__(**properties)
 
     # Any code you write here will run before the form opens.
+
+  @handle("logIn", "click")
+  def logIn_click(self, **event_args):
+    """This method is called when the button is clicked"""
+    anvil.users.login_with_form()
+
+  @handle("signUp", "click")
+  def signUp_click(self, **event_args):
+    """This method is called when the button is clicked"""
+    anvil.users.login_with_form()
+    
