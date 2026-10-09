@@ -18,9 +18,11 @@ class Landing(LandingTemplate):
   def logIn_click(self, **event_args):
     """This method is called when the button is clicked"""
     anvil.users.login_with_form()
+    anvil.open_form('Launch')
 
   @handle("signUp", "click")
   def signUp_click(self, **event_args):
     """This method is called when the button is clicked"""
-    anvil.users.login_with_form()
+    anvil.users.signup_with_form()
+    anvil.open_form('Launch')
     
