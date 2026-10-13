@@ -39,7 +39,7 @@ class simSettings(simSettingsTemplate):
     self.tradingOpen.checked = bool(panel.get("open"))
     self.commissionPerTrade.text = str(config.get("commission", DEFAULTS["commission"]))
     self.quoteRefreshMinutes.text = str(config.get("quoteRefreshMinutes", DEFAULTS["quoteRefreshMinutes"]))
-    self.quoteFreshnessSeconds.text = str(
+    self.quoteRefreshSeconds.text = str(
       config.get("quoteFreshnessSeconds", DEFAULTS["quoteFreshnessSeconds"]))
     self.delayedSipMaxAgeSeconds.text = str(
       config.get("delayedSipMaxAgeSeconds", DEFAULTS["delayedSipMaxAgeSeconds"]))
@@ -56,7 +56,7 @@ class simSettings(simSettingsTemplate):
         "open": bool(self.tradingOpen.checked),
         "commission": float(str(self.commissionPerTrade.text or "0").strip()),
         "quoteRefreshMinutes": int(str(self.quoteRefreshMinutes.text or "1").strip()),
-        "quoteFreshnessSeconds": int(str(self.quoteFreshnessSeconds.text or "90").strip()),
+        "quoteFreshnessSeconds": int(str(self.quoteRefreshSeconds.text or "90").strip()),
         "delayedSipMaxAgeSeconds": int(str(self.delayedSipMaxAgeSeconds.text or "1200").strip()),
         "benchmarkTicker": str(self.benchmarkTicker.text or "SPY").strip(),
       }
