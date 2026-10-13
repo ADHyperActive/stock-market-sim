@@ -244,9 +244,45 @@ db_schema:
       client_hidden: false
       name: completed_at
       type: datetime
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: order_id
+      type: string
     indexes: []
     server: full
     title: Transactions
+  holdings:
+    client: none
+    columns:
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: simulation
+      target: simulations
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: student
+      target: student_data
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: ticker
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: shares
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: avg_cost
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: last_updated
+      type: datetime
+    indexes: []
+    server: full
+    title: Holdings
   users:
     client: search
     columns:
