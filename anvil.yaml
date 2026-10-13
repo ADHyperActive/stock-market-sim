@@ -1,5 +1,37 @@
 allow_embedding: false
 db_schema:
+  holdings:
+    client: none
+    columns:
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: simulation
+      target: simulations
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: student
+      target: student_data
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: ticker
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: shares
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: avg_cost
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: last_updated
+      type: datetime
+    indexes: []
+    server: full
+    title: Holdings
   simulations:
     client: full
     columns:
@@ -251,38 +283,6 @@ db_schema:
     indexes: []
     server: full
     title: Transactions
-  holdings:
-    client: none
-    columns:
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: simulation
-      target: simulations
-      type: link_single
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: student
-      target: student_data
-      type: link_single
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: ticker
-      type: string
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: shares
-      type: number
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: avg_cost
-      type: number
-    - admin_ui: {width: 200}
-      client_hidden: false
-      name: last_updated
-      type: datetime
-    indexes: []
-    server: full
-    title: Holdings
   users:
     client: search
     columns:
