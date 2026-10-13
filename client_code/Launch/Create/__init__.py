@@ -14,9 +14,13 @@ class Create(CreateTemplate):
     self.create_button = Button(text="Create simulation", role="primary-color")
     self.create_button.add_event_handler("click", self.do_create)
     self.result = Label(text="")
+    self.settings_button = Button(text="Open teacher panel", role="outlined-button")
+    self.settings_button.visible = False
+    self.settings_button.add_event_handler("click", self.open_settings)
     self.back_button = Link(text="Back")
     self.back_button.add_event_handler("click", lambda **e: open_form("Launch"))
-    for component in (self.heading, self.explainer, self.create_button, self.result, self.back_button):
+    for component in (self.heading, self.explainer, self.create_button, self.result,
+                      self.settings_button, self.back_button):
       self.content_panel.add_component(component)
 
   def do_create(self, **event_args):
@@ -29,4 +33,9 @@ class Create(CreateTemplate):
       self.create_button.enabled = True
       return
     self.result.text = "Simulation code: " + outcome["simcode"]
+    self.simcode = outcome["simcode"]
+    self.settings_button.visible = True
     self.create_button.enabled = True
+
+  def open_settings(self, **event_args):
+    open_form("simSettings", simcode=getattr(self, "simcode", ""))
