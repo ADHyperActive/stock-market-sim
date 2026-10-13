@@ -357,3 +357,78 @@ def recent_orders(simcode, limit=10):
     }
     for r in ordered[:count]
   ]}
+
+
+def _position_totals(sim, student):
+  """Holdings valued at average cost. TEST-phase valuation: with stub
+  quotes there is no market price yet, so unrealized gain is 0 by
+  construction. The market-data milestone replaces the price source."""
+  positions = []
+  holdings_value = 0.0
+  for h in app_tables.holdings.search(simulation=sim, student=student):
+    shares = int(h["shares"] or 0)
+    if shares <= 0:
+      continue
+    avg = _money(h["avg_cost"] or 0)
+    value = _money(shares * avg)
+    holdings_value = _money(holdings_value + value)
+    positions.append({
+      "ticker": h["ticker"],
+      "shares": shares,
+      "avgCost": avg,
+      "price": avg,
+      "marketValue": value,
+      "unrealizedGain": 0.0,
+      "returnRate": 0.0,
+    })
+  positions.sort(key=lambda p: p["marketValue"], reverse=True)
+  return positions, holdings_value
+
+
+@anvil.server.callable
+def get_portfolio(simcode):
+  """Caller's portfolio in one simulation: cash, positions, totals, rank."""
+  email = _caller_email()
+  code = str(simcode or "").strip().upper()
+  sim = app_tables.simulations.get(simcode=code)
+  if sim is None:
+    return {"ok": False, "message": "Unknown simulation code."}
+  student = app_tables.student_data.get(simcode=code, email=email)
+  if student is None:
+    return {"ok": False, "message": "No account for " + email + " in this simulation."}
+  if not student["active"]:
+    return {"ok": False, "message": "This account is inactive."}
+
+  positions, holdings_value = _position_totals(sim, student)
+  cash = _money(student["cash_balance"] or 0)
+  start = _money(student["start_cash"] or 0)
+  total = _money(cash + holdings_value)
+  gain = _money(total - start)
+  rate = (gain / start) if start else 0.0
+
+  totals = []
+  for other in app_tables.student_data.search(simcode=code, active=True):
+    opos, oval = _position_totals(sim, other)
+    totals.append((other["email"], _money(_money(other["cash_balance"] or 0) + oval)))
+  totals.sort(key=lambda t: t[1], reverse=True)
+  rank = next((i + 1 for i, t in enumerate(totals) if t[0] == email), None)
+
+  return {
+    "ok": True,
+    "simcode": code,
+    "tradingOpen": bool(sim["open"]),
+    "testData": True,
+    "student": {
+      "name": str(student["first_name"] or "") + " " + str(student["last_name"] or ""),
+      "email": email,
+      "classPeriod": str(student["class_period"] or ""),
+      "cashBalance": cash,
+      "holdingsValue": holdings_value,
+      "totalValue": total,
+      "dollarGainLoss": gain,
+      "returnRate": rate,
+      "rank": rank,
+      "rankOf": len(totals),
+    },
+    "holdings": positions,
+  }
