@@ -16,7 +16,7 @@ class Join(JoinTemplate):
     self.join_button.add_event_handler("click", self.do_join)
     self.message = Label(text="")
     self.back_button = Link(text="Back")
-    self.back_button.add_event_handler("click", lambda **e: open_form("Landing"))
+    self.back_button.add_event_handler("click", lambda **e: open_form("Launch"))
     for component in (
       self.heading, self.code_box, self.first_box,
       self.last_box, self.period_box, self.join_button,

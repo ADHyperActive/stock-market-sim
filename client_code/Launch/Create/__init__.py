@@ -15,7 +15,7 @@ class Create(CreateTemplate):
     self.create_button.add_event_handler("click", self.do_create)
     self.result = Label(text="")
     self.back_button = Link(text="Back")
-    self.back_button.add_event_handler("click", lambda **e: open_form("Landing"))
+    self.back_button.add_event_handler("click", lambda **e: open_form("Launch"))
     for component in (self.heading, self.explainer, self.create_button, self.result, self.back_button):
       self.content_panel.add_component(component)
 
