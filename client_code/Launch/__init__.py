@@ -41,11 +41,11 @@ class Launch(LaunchTemplate):
       anvil.users.login_with_form(allow_cancel=True)
       self.refresh_login_state()
     if anvil.users.get_user():
-      open_form("Landing.Create")
+      open_form("Launch.Create")
 
   def open_join(self, **event_args):
     if not anvil.users.get_user():
       anvil.users.login_with_form(allow_cancel=True)
       self.refresh_login_state()
     if anvil.users.get_user():
-      open_form("Landing.Join")
+      open_form("Launch.Join")
