@@ -452,3 +452,27 @@ def debug_place_order(simcode, target_email, side, ticker, shares,
     "marketDataSource": quote["source"],
     "priceClassification": quote["classification"],
   }
+
+
+@anvil.server.callable
+def my_simulations():
+  """Simulations the caller can re-open: owned (teacher) + joined (student)."""
+  user = anvil.users.get_user()
+  if user is None:
+    return {"logged_in": False, "owned": [], "joined": []}
+  email = str(user["email"] or "").strip().lower()
+  owned = [
+    {"simcode": s["simcode"], "open": bool(s["open"]), "active": bool(s["active"])}
+    for s in app_tables.simulations.search(teacher_email=email)
+  ]
+  joined = []
+  for row in app_tables.student_data.search(email=email):
+    sim = app_tables.simulations.get(simcode=row["simcode"])
+    if sim is None:
+      continue
+    joined.append({
+      "simcode": row["simcode"],
+      "open": bool(sim["open"]),
+      "active": bool(sim["active"]),
+    })
+  return {"logged_in": True, "owned": owned, "joined": joined}
