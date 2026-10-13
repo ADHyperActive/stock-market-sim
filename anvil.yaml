@@ -290,6 +290,7 @@ runtime_options:
   legacy_features: {bootstrap3: true, class_names: true}
   server_spec: {base: python314}
   version: 3
+scheduled_tasks: []
 secrets:
   alpaca_api:
     type: secret
