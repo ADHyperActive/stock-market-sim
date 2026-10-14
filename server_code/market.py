@@ -220,7 +220,11 @@ def _read_cache(tickers, ttl):
   """Prices-table cache: {ticker: {price, quote_time, stale}} for fresh rows."""
   now = _now()
   found = {}
-  for row in app_tables.prices.search():
+  try:
+    rows = app_tables.prices.search()
+  except Exception:
+    return found
+  for row in rows:
     ticker = row["ticker"]
     if ticker not in tickers or ticker in found:
       continue
