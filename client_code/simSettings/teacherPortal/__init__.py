@@ -204,4 +204,3 @@ class teacherPortal(teacherPortalTemplate):
       lines.append("[%s] %s — %s" % (
         check.get("status", "?"), check.get("name", "?"), check.get("details", "")))
     self.results_box.text = "\n".join(lines)
-Commit 1 done (7fd9e51). Item 2: crash recovery sweep — re-reading the commit core field names first.
