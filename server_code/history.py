@@ -235,3 +235,69 @@ def recent_history(simcode, limit=90):
       "benchmarkReturn": bench,
     })
   return {"ok": True, "simcode": code, "points": points}
+
+
+@anvil.server.callable
+def benchmark_status(simcode):
+  """Benchmark vs class comparison line for the portals.
+
+  Any caller attached to the sim (teacher, or an active student) may read
+  it: ticker, latest and first-recorded price, return since start, as-of
+  date, plus the class average return across active students' latest
+  snapshots. Empty until the first snapshot exists.
+  """
+  user = anvil.users.get_user()
+  if user is None:
+    return {"ok": False, "message": "Log in first."}
+  email = str(user["email"] or "").strip().lower()
+  code = str(simcode or "").strip().upper()
+  sim = app_tables.simulations.get(simcode=code)
+  if sim is None:
+    return {"ok": False, "message": "Unknown simulation code."}
+  is_teacher = str(sim["teacher_email"] or "").strip().lower() == email
+  if not is_teacher and app_tables.student_data.get(
+      simcode=code, email=email, active=True) is None:
+    return {"ok": False, "message": "No active account in this simulation."}
+  rows = list(app_tables.snapshots.search(simulation=sim))
+  if not rows:
+    return {"ok": False, "message": "No snapshots yet."}
+  dated = sorted(
+    (r for r in rows if r["snapshot_at"] is not None),
+    key=lambda r: r["snapshot_at"],
+  )
+  if not dated:
+    return {"ok": False, "message": "No snapshots yet."}
+  first = dated[0]
+  latest = dated[-1]
+  try:
+    start = float(first["benchmark_price"] or 0)
+  except (TypeError, ValueError):
+    start = 0.0
+  try:
+    price = float(latest["benchmark_price"] or 0)
+  except (TypeError, ValueError):
+    price = 0.0
+  bench_return = ((price - start) / start) if (price > 0 and start > 0) else 0.0
+  latest_per_student = {}
+  for row in dated:
+    student = row["student"]
+    if student is not None:
+      latest_per_student[student["email"]] = row
+  class_returns = []
+  for row in latest_per_student.values():
+    try:
+      class_returns.append(float(row["return"] or 0))
+    except (TypeError, ValueError):
+      continue
+  class_avg = (sum(class_returns) / len(class_returns)) if class_returns else 0.0
+  return {
+    "ok": True,
+    "simcode": code,
+    "ticker": str(latest["benchmark_ticker"] or first["benchmark_ticker"] or "SPY"),
+    "price": price,
+    "startPrice": start,
+    "return": bench_return,
+    "asOf": latest["date_str"] or "",
+    "classAvgReturn": class_avg,
+    "studentCount": len(class_returns),
+  }

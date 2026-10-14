@@ -52,6 +52,8 @@ class studentPortal(studentPortalTemplate):
     self.outlined_card_8.add_component(self.orders_grid)
     self.history_note = Label(text="Loading history…")
     self.outlined_card_10.add_component(self.history_note)
+    self.benchmark_note = Label(text="Loading benchmark…")
+    self.outlined_card_10.add_component(self.benchmark_note)
     self.back_link = Link(text="Back to home")
     self.back_link.add_event_handler("click", lambda **e: open_form("Launch"))
     self.navbar_links.add_component(self.back_link)
@@ -150,6 +152,17 @@ class studentPortal(studentPortalTemplate):
         "%d snapshot(s) · latest %s · return %s · benchmark %s." % (
           len(points), latest["date"], _percent(latest["returnRate"]),
           _percent(latest["benchmarkReturn"])))
+    try:
+      bench = anvil.server.call("benchmark_status", self.simcode)
+    except Exception:
+      bench = {"ok": False}
+    if bench.get("ok"):
+      self.benchmark_note.text = (
+        "Benchmark %s %s (%s since start) · class average %s · as of %s." % (
+          bench["ticker"], _money(bench["price"]), _percent(bench["return"]),
+          _percent(bench["classAvgReturn"]), bench["asOf"] or "—"))
+    else:
+      self.benchmark_note.text = "Benchmark comparison appears after the first snapshot."
 
   def submit_order(self, **event_args):
     try:

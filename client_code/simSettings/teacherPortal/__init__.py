@@ -34,6 +34,8 @@ class teacherPortal(teacherPortalTemplate):
     self.content_panel.add_component(Label(text="Teacher portal", font_size=20))
     self.sim_label = Label(text="")
     self.content_panel.add_component(self.sim_label)
+    self.benchmark_label = Label(text="")
+    self.content_panel.add_component(self.benchmark_label)
 
     self.content_panel.add_component(Label(text="Leaderboard", font_size=16))
     self.board_grid = DataGrid(columns=[
@@ -102,6 +104,19 @@ class teacherPortal(teacherPortalTemplate):
       return
     self.sim_label.text = "Simulation %s · %d student(s) on the board." % (
       board.get("simcode", ""), len(board.get("board", [])))
+    try:
+      bench = anvil.server.call("benchmark_status", self.simcode)
+    except Exception:
+      bench = {"ok": False}
+    if bench.get("ok"):
+      self.benchmark_label.text = (
+        "Benchmark %s %s (%s since start) · class average %s "
+        "across %d student(s) · as of %s." % (
+          bench["ticker"], _money_text(bench["price"]),
+          _pct_text(bench["return"]), _pct_text(bench["classAvgReturn"]),
+          bench["studentCount"], bench["asOf"] or "—"))
+    else:
+      self.benchmark_label.text = "Benchmark comparison appears after the first snapshot."
     _fill_grid(self.board_grid, [{
       "rank": row["rank"],
       "name": row["name"] or row["email"],
