@@ -66,11 +66,21 @@ class teacherPortal(teacherPortalTemplate):
     self.refresh_button = Button(text="Refresh")
     self.refresh_button.add_event_handler("click", self.refresh)
     buttons.add_component(self.refresh_button)
+    self.integrity_button = Button(text="Run integrity check")
+    self.integrity_button.add_event_handler("click", self.run_integrity)
+    buttons.add_component(self.integrity_button)
+    self.diagnostics_button = Button(text="Run diagnostics")
+    self.diagnostics_button.add_event_handler("click", self.run_diagnostics)
+    buttons.add_component(self.diagnostics_button)
     back = Link(text="Back to settings")
     back.add_event_handler(
       "click", lambda **e: open_form("simSettings", simcode=self.simcode))
     buttons.add_component(back)
     self.content_panel.add_component(buttons)
+
+    self.results_box = TextArea(readonly=True)
+    self.results_box.height = 220
+    self.content_panel.add_component(self.results_box)
 
     self.refresh()
 
@@ -120,3 +130,30 @@ class teacherPortal(teacherPortalTemplate):
       "status": o["status"],
       "message": o["message"],
     } for o in orders])
+
+  def run_integrity(self, **event_args):
+    self.results_box.text = "Running integrity check…"
+    try:
+      result = anvil.server.call("integrity_check", self.simcode)
+    except Exception as error:
+      self.results_box.text = "Integrity check failed: " + str(error)
+      return
+    lines = [result.get("summary", "")]
+    for issue in result.get("issues", []):
+      lines.append("ISSUE: " + issue)
+    for note in result.get("notes", []):
+      lines.append("note: " + note)
+    self.results_box.text = "\n".join(lines)
+
+  def run_diagnostics(self, **event_args):
+    self.results_box.text = "Running diagnostics…"
+    try:
+      result = anvil.server.call("diagnostics", self.simcode)
+    except Exception as error:
+      self.results_box.text = "Diagnostics failed: " + str(error)
+      return
+    lines = [result.get("summary", "")]
+    for check in result.get("checks", []):
+      lines.append("[%s] %s — %s" % (
+        check.get("status", "?"), check.get("name", "?"), check.get("details", "")))
+    self.results_box.text = "\n".join(lines)
