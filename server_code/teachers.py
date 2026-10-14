@@ -92,8 +92,10 @@ def teacher_panel(simcode):
 
 @anvil.server.callable
 def teacher_set_settings(simcode, patch):
-  """Validate and store teacher settings. Only 'commission' is read by the
-  engine today; the rest are stored for the market-data milestone."""
+  """Validate and store teacher settings. The engine reads commission,
+  quoteFreshnessSeconds, preMarketEnabled, allowStaleQuotes, and
+  staleMaxAgeSeconds from the stored config; the rest are stored for display
+  and future milestones."""
   sim, _teacher = _teacher_sim(simcode)
   patch = patch or {}
   try:
@@ -114,6 +116,13 @@ def teacher_set_settings(simcode, patch):
     return {"ok": False, "message": "Quote freshness seconds must be 15-600."}
   if not 60 <= delayed_max <= 7200:
     return {"ok": False, "message": "Delayed max age seconds must be 60-7200."}
+  allow_stale = bool(patch.get("allowStaleQuotes", False))
+  try:
+    stale_max = int(patch.get("staleMaxAgeSeconds", 86400))
+  except (TypeError, ValueError):
+    return {"ok": False, "message": "Stale max age must be a whole number of seconds."}
+  if not 300 <= stale_max <= 604800:
+    return {"ok": False, "message": "Stale max age seconds must be 300-604800."}
   benchmark = str(patch.get("benchmarkTicker", "SPY") or "SPY").strip().upper()
   if not TICKER_RE.match(benchmark):
     return {"ok": False, "message": "Benchmark ticker is invalid."}
@@ -124,6 +133,8 @@ def teacher_set_settings(simcode, patch):
     "quoteFreshnessSeconds": fresh_sec,
     "delayedSipMaxAgeSeconds": delayed_max,
     "benchmarkTicker": benchmark,
+    "allowStaleQuotes": allow_stale,
+    "staleMaxAgeSeconds": stale_max,
   })
   sim["open"] = bool(patch.get("open", sim["open"]))
   sim["config"] = config
@@ -443,8 +454,10 @@ def debug_place_order(simcode, target_email, side, ticker, shares,
   executed = _now()
   row["status"] = "ACCEPTED"
   row["message"] = (
-    "%s %d share(s) of %s at $%.2f. Price source: %s (LIVE DATA)."
-    % (clean["side"], clean["shares"], clean["ticker"], price, quote["source"]))
+    "%s %d share(s) of %s at $%.2f. Price source: %s (%s)."
+    % (clean["side"], clean["shares"], clean["ticker"], price, quote["source"],
+       "STALE DATA — older cached price"
+       if str(quote["classification"] or "").startswith("STALE") else "LIVE DATA"))
   row["executed_at"] = executed
   row["completed_at"] = executed
   return {

@@ -9,6 +9,8 @@ DEFAULTS = {
   "quoteFreshnessSeconds": 90,
   "delayedSipMaxAgeSeconds": 1200,
   "benchmarkTicker": "SPY",
+  "allowStaleQuotes": False,
+  "staleMaxAgeSeconds": 86400,
 }
 
 
@@ -28,6 +30,18 @@ class simSettings(simSettingsTemplate):
     self.teacher_button.add_event_handler(
       "click", lambda **e: open_form("simSettings.teacherPortal", simcode=self.simcode))
     self.content_panel.add_component(self.teacher_button)
+    stale_row = FlowPanel()
+    stale_row.add_component(Label(
+      text="Allow trading on older cached prices when live quotes fail (default off):"))
+    self.staleSwitch = Switch(checked=False)
+    stale_row.add_component(self.staleSwitch)
+    self.content_panel.add_component(stale_row)
+    stale_age_row = FlowPanel()
+    stale_age_row.add_component(Label(
+      text="Oldest usable cached price, in seconds (300-604800):"))
+    self.staleMaxAgeSeconds = TextBox(text=str(DEFAULTS["staleMaxAgeSeconds"]))
+    stale_age_row.add_component(self.staleMaxAgeSeconds)
+    self.content_panel.add_component(stale_age_row)
     self.load_settings()
 
   def load_settings(self):
@@ -48,6 +62,9 @@ class simSettings(simSettingsTemplate):
     self.delayedSipMaxAgeSeconds.text = str(
       config.get("delayedSipMaxAgeSeconds", DEFAULTS["delayedSipMaxAgeSeconds"]))
     self.benchmarkTicker.text = str(config.get("benchmarkTicker", DEFAULTS["benchmarkTicker"]))
+    self.staleSwitch.checked = bool(config.get("allowStaleQuotes", DEFAULTS["allowStaleQuotes"]))
+    self.staleMaxAgeSeconds.text = str(
+      config.get("staleMaxAgeSeconds", DEFAULTS["staleMaxAgeSeconds"]))
     counts = panel.get("counts", {})
     self.status.text = (
       "Simulation %s · %d student(s) · %d holding(s) · %d transaction(s)." % (
@@ -63,6 +80,8 @@ class simSettings(simSettingsTemplate):
         "quoteFreshnessSeconds": int(str(self.quoteRefreshSeconds.text or "90").strip()),
         "delayedSipMaxAgeSeconds": int(str(self.delayedSipMaxAgeSeconds.text or "1200").strip()),
         "benchmarkTicker": str(self.benchmarkTicker.text or "SPY").strip(),
+        "allowStaleQuotes": bool(self.staleSwitch.checked),
+        "staleMaxAgeSeconds": int(str(self.staleMaxAgeSeconds.text or "86400").strip()),
       }
     except ValueError:
       alert("Settings must be numbers (except the benchmark ticker).")

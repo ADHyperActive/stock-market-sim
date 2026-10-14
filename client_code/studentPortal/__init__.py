@@ -77,6 +77,12 @@ class studentPortal(studentPortalTemplate):
       self.tickerPill.level = "warning"
       return
     source = str(quote.get("source", ""))
+    classification = str(quote.get("classification", ""))
+    if classification.startswith("STALE"):
+      self.tickerPill.message = "%s · %s (STALE DATA — older cached price)" % (
+        quote["ticker"], _money(quote["price"]))
+      self.tickerPill.level = "warning"
+      return
     label = "LIVE" if source.startswith("ALPACA") else (source or "PRICE")
     self.tickerPill.message = "%s · %s (%s)" % (
       quote["ticker"], _money(quote["price"]), label)

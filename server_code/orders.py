@@ -284,9 +284,11 @@ def place_order(simcode, side, ticker, shares, note="", request_id=""):
 
   executed = _now()
   row["status"] = "ACCEPTED"
+  stale = str(quote["classification"] or "").startswith("STALE")
   row["message"] = (
-    "%s %d share(s) of %s at $%.2f. Price source: %s (LIVE DATA)."
-    % (clean["side"], clean["shares"], clean["ticker"], price, quote["source"]))
+    "%s %d share(s) of %s at $%.2f. Price source: %s (%s)."
+    % (clean["side"], clean["shares"], clean["ticker"], price, quote["source"],
+       "STALE DATA — older cached price" if stale else "LIVE DATA"))
   row["executed_at"] = executed
   row["completed_at"] = executed
   return {
@@ -442,7 +444,7 @@ def preview_quote(simcode, ticker):
   clean = str(ticker or "").strip().upper()
   if not TICKER_RE.match(clean):
     return {"ok": False, "message": "Enter a valid ticker symbol."}
-  quote = get_execution_quote(clean, "BUY")
+  quote = get_execution_quote(clean, "BUY", dict(sim["config"] or {}))
   if not quote.get("ok"):
     return {"ok": False, "message": quote.get("message") or ("No price available for " + clean + ".")}
   return {
