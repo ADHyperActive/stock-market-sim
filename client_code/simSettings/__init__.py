@@ -24,6 +24,10 @@ class simSettings(simSettingsTemplate):
     self.applyButton.add_event_handler("click", self.apply_settings)
     self.debugButton.add_event_handler(
       "click", lambda **e: open_form("debugPortal", simcode=self.simcode))
+    self.teacher_button = Button(text="Teacher portal")
+    self.teacher_button.add_event_handler(
+      "click", lambda **e: open_form("simSettings.teacherPortal", simcode=self.simcode))
+    self.content_panel.add_component(self.teacher_button)
     self.load_settings()
 
   def load_settings(self):

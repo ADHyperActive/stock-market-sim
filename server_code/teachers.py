@@ -476,3 +476,61 @@ def my_simulations():
       "active": bool(sim["active"]),
     })
   return {"logged_in": True, "owned": owned, "joined": joined}
+
+
+@anvil.server.callable
+def teacher_leaderboard(simcode):
+  """Per-student totals for every active account, ranked best first.
+  Teacher only. Same valuation convention as the student portal."""
+  sim, _teacher = _teacher_sim(simcode)
+  board = []
+  for student in app_tables.student_data.search(simcode=sim["simcode"], active=True):
+    _positions, value = _position_totals(sim, student)
+    cash = _money(student["cash_balance"] or 0)
+    start = _money(student["start_cash"] or 0)
+    total = _money(cash + value)
+    gain = _money(total - start)
+    board.append({
+      "email": student["email"],
+      "name": (str(student["first_name"] or "") + " "
+               + str(student["last_name"] or "")).strip(),
+      "classPeriod": str(student["class_period"] or ""),
+      "cash": cash,
+      "holdings": _money(value),
+      "total": total,
+      "gain": gain,
+      "return": (gain / start) if start else 0,
+    })
+  board.sort(key=lambda r: (-r["total"], r["name"]))
+  for rank, row in enumerate(board, start=1):
+    row["rank"] = rank
+  return {"ok": True, "simcode": sim["simcode"], "board": board}
+
+
+@anvil.server.callable
+def teacher_all_transactions(simcode, limit=200):
+  """Every journal row in this simulation, newest first. Teacher only."""
+  sim, _teacher = _teacher_sim(simcode)
+  try:
+    count = max(1, min(500, int(limit)))
+  except (TypeError, ValueError):
+    count = 200
+  rows = app_tables.transactions.search(simulation=sim)
+  ordered = sorted(rows, key=lambda r: r["submitted_at"] or _now(), reverse=True)
+  return {"ok": True, "simcode": sim["simcode"], "orders": [
+    {
+      "orderId": r["order_id"],
+      "submittedAt": r["submitted_at"].isoformat() if r["submitted_at"] else "",
+      "email": r["student"]["email"] if r["student"] else "",
+      "name": ((str(r["student"]["first_name"] or "") + " "
+                + str(r["student"]["last_name"] or "")).strip()
+               if r["student"] else ""),
+      "side": r["side"],
+      "shares": r["shares"],
+      "ticker": r["ticker"],
+      "price": r["execution_price"],
+      "status": r["status"],
+      "message": r["message"],
+    }
+    for r in ordered[:count]
+  ]}

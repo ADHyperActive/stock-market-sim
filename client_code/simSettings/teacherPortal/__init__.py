@@ -1,15 +1,122 @@
 from ._anvil_designer import teacherPortalTemplate
 from anvil import *
 import anvil.server
-import anvil.users
-import anvil.tables as tables
-import anvil.tables.query as q
-from anvil.tables import app_tables
+
+
+def _money_text(value):
+  try:
+    number = float(value or 0)
+  except (TypeError, ValueError):
+    number = 0.0
+  return "$" + format(number, ",.2f")
+
+
+def _pct_text(value):
+  try:
+    number = float(value or 0)
+  except (TypeError, ValueError):
+    number = 0.0
+  return "%.2f%%" % (number * 100.0)
+
+
+def _fill_grid(grid, records):
+  grid.clear()
+  for record in records:
+    grid.add_component(DataRowPanel(item=record))
 
 
 class teacherPortal(teacherPortalTemplate):
-  def __init__(self, **properties):
-    # Set Form properties and Data Bindings.
+  def __init__(self, simcode="", **properties):
     super().__init__(**properties)
+    self.simcode = simcode or ""
+    self._all_orders = []
 
-    # Any code you write here will run before the form opens.
+    self.content_panel.add_component(Label(text="Teacher portal", font_size=20))
+    self.sim_label = Label(text="")
+    self.content_panel.add_component(self.sim_label)
+
+    self.content_panel.add_component(Label(text="Leaderboard", font_size=16))
+    self.board_grid = DataGrid(columns=[
+      {"id": "rank", "title": "Rank", "data_key": "rank"},
+      {"id": "name", "title": "Student", "data_key": "name"},
+      {"id": "class", "title": "Class", "data_key": "classPeriod"},
+      {"id": "cash", "title": "Cash", "data_key": "cash"},
+      {"id": "holdings", "title": "Holdings", "data_key": "holdings"},
+      {"id": "total", "title": "Total", "data_key": "total"},
+      {"id": "gain", "title": "Gain/loss", "data_key": "gain"},
+      {"id": "ret", "title": "Return", "data_key": "ret"},
+    ])
+    self.content_panel.add_component(self.board_grid)
+
+    self.content_panel.add_component(Label(text="All transactions", font_size=16))
+    self.filter_dropdown = DropDown(items=[("All students", "")])
+    self.filter_dropdown.add_event_handler("change", self.apply_filter)
+    self.content_panel.add_component(self.filter_dropdown)
+    self.tx_grid = DataGrid(columns=[
+      {"id": "submitted", "title": "Submitted", "data_key": "submitted"},
+      {"id": "student", "title": "Student", "data_key": "student"},
+      {"id": "order", "title": "Order", "data_key": "order"},
+      {"id": "price", "title": "Price", "data_key": "price"},
+      {"id": "status", "title": "Status", "data_key": "status"},
+      {"id": "message", "title": "Message", "data_key": "message"},
+    ])
+    self.content_panel.add_component(self.tx_grid)
+
+    buttons = FlowPanel()
+    self.refresh_button = Button(text="Refresh")
+    self.refresh_button.add_event_handler("click", self.refresh)
+    buttons.add_component(self.refresh_button)
+    back = Link(text="Back to settings")
+    back.add_event_handler(
+      "click", lambda **e: open_form("simSettings", simcode=self.simcode))
+    buttons.add_component(back)
+    self.content_panel.add_component(buttons)
+
+    self.refresh()
+
+  def refresh(self, **event_args):
+    try:
+      board = anvil.server.call("teacher_leaderboard", self.simcode)
+      tx = anvil.server.call("teacher_all_transactions", self.simcode)
+    except Exception as error:
+      self.sim_label.text = "Could not load: " + str(error)
+      return
+    if not board.get("ok"):
+      self.sim_label.text = board.get("message", "Could not load.")
+      return
+    if not tx.get("ok"):
+      self.sim_label.text = tx.get("message", "Could not load.")
+      return
+    self.sim_label.text = "Simulation %s · %d student(s) on the board." % (
+      board.get("simcode", ""), len(board.get("board", [])))
+    _fill_grid(self.board_grid, [{
+      "rank": row["rank"],
+      "name": row["name"] or row["email"],
+      "classPeriod": row["classPeriod"],
+      "cash": _money_text(row["cash"]),
+      "holdings": _money_text(row["holdings"]),
+      "total": _money_text(row["total"]),
+      "gain": _money_text(row["gain"]),
+      "ret": _pct_text(row["return"]),
+    } for row in board.get("board", [])])
+    self._all_orders = tx.get("orders", [])
+    students = sorted({(o["name"] or o["email"], o["email"]) for o in self._all_orders
+                       if o["email"]})
+    self.filter_dropdown.items = [("All students", "")] + [
+      ("%s (%s)" % (name, email), email) for name, email in students
+    ]
+    self.filter_dropdown.selected_value = ""
+    self.apply_filter()
+
+  def apply_filter(self, **event_args):
+    chosen = self.filter_dropdown.selected_value or ""
+    orders = [o for o in self._all_orders if not chosen or o["email"] == chosen]
+    _fill_grid(self.tx_grid, [{
+      "submitted": o["submittedAt"],
+      "student": o["name"] or o["email"],
+      "order": " ".join([str(o["side"] or ""), str(o["shares"] or ""),
+                         str(o["ticker"] or "")]).strip(),
+      "price": _money_text(o["price"]),
+      "status": o["status"],
+      "message": o["message"],
+    } for o in orders])
