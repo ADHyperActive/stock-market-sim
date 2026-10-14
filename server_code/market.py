@@ -13,9 +13,12 @@ Pricing rules (ported from the classroom engine):
 - Regular session: fresh IEX quote only. BUY executes at the ask, SELL at the
   bid. Free-tier keys have no consolidated SIP feed, so there is no delayed
   fallback: a stale quote is a safe reject, not an execution.
-- Pre-market: weekdays from 08:00 ET until the regular open. Same
-  side-specific rule (BUY=ask, SELL=bid), quote age capped at 90 seconds,
-  two-sided non-crossed quote with positive sizes required.
+- Pre-market: DISABLED by default. Verified 2026-10-14 that free-tier IEX
+  keys return the prior close as the latest quote before the open, so the
+  90-second freshness cap rejects every pre-market book. Enable only with
+  config {"preMarketEnabled": True} on a feed that actually quotes before
+  the open; the session gate (weekdays from 08:00 ET) and side-specific rule
+  (BUY=ask, SELL=bid) are unchanged for that case.
 - Valuation (portfolio display) is tolerant: quote midpoint, else latest
   trade, else previous close marked stale. Display never blocks on data.
 """
@@ -173,7 +176,11 @@ def get_live_quote(ticker, side, config=None):
     return {"ok": False, "message": str(error)}
   if clock["is_open"]:
     session = ("OPEN", "LIVE_REAL_TIME", "ALPACA_IEX")
-  elif _premarket_session(clock, now):
+  elif (cfg.get("preMarketEnabled") is True
+        and _premarket_session(clock, now)):
+    # Opt-in only: verified 2026-10-14 that free-tier IEX keys carry no live
+    # pre-market book (an 08:47 ET fetch returned the prior 16:00 ET close),
+    # so without an explicit opt-in this falls through to closed below.
     session = ("PRE_MARKET", "LIVE_PRE_MARKET", "ALPACA_IEX_PREMARKET")
     limit = min(limit, 90)
   else:
