@@ -208,6 +208,43 @@ def get_live_quote(ticker, side, config=None):
   }
 
 
+def raw_quote(ticker):
+  """Untrusted raw IEX book for one ticker: no freshness or trust checks.
+
+  Diagnostic only. Returns timestamps ISO-formatted with the computed age so a
+  stale-book feed and a timestamp-parsing bug can be told apart.
+  """
+  clean = str(ticker or "").strip().upper()
+  now = _now()
+  try:
+    clock = _clock_state()
+  except RuntimeError as error:
+    return {"ok": False, "message": str(error)}
+  try:
+    _trading, data = _clients()
+    quotes = data.get_stock_latest_quote(StockLatestQuoteRequest(symbol_or_symbols=[clean], feed="iex"))
+  except Exception as error:
+    return {"ok": False, "message": _provider_message(error)}
+  quote = (quotes or {}).get(clean)
+  if quote is None:
+    return {"ok": False, "message": "Unknown or unsupported ticker."}
+  stamp = quote.timestamp
+  age = _quote_age(stamp, now)
+  return {
+    "ok": True,
+    "ticker": clean,
+    "timestamp": stamp.isoformat() if stamp is not None else None,
+    "timestamp_naive": stamp.tzinfo is None if stamp is not None else None,
+    "server_now_utc": now.isoformat(),
+    "age_seconds": age,
+    "bid_price": getattr(quote, "bid_price", None),
+    "ask_price": getattr(quote, "ask_price", None),
+    "bid_size": getattr(quote, "bid_size", None),
+    "ask_size": getattr(quote, "ask_size", None),
+    "market_open": clock["is_open"],
+  }
+
+
 def _valuation_ttl(config):
   try:
     minutes = int((config or {}).get("quoteRefreshMinutes", 1))

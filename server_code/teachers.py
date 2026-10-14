@@ -543,3 +543,10 @@ def teacher_all_transactions(simcode, limit=200):
     }
     for r in ordered[:count]
   ]}
+
+
+@anvil.server.callable
+def debug_raw_quote(simcode, ticker):
+  """Raw IEX book dump for diagnosing trust rejections. Teacher only."""
+  sim, _teacher = _teacher_sim(simcode)
+  return market.raw_quote(ticker)
