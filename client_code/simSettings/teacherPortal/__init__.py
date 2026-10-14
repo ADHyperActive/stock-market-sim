@@ -72,6 +72,9 @@ class teacherPortal(teacherPortalTemplate):
     self.diagnostics_button = Button(text="Run diagnostics")
     self.diagnostics_button.add_event_handler("click", self.run_diagnostics)
     buttons.add_component(self.diagnostics_button)
+    self.snapshot_button = Button(text="Refresh + snapshot now")
+    self.snapshot_button.add_event_handler("click", self.run_snapshot)
+    buttons.add_component(self.snapshot_button)
     back = Link(text="Back to settings")
     back.add_event_handler(
       "click", lambda **e: open_form("simSettings", simcode=self.simcode))
@@ -130,6 +133,18 @@ class teacherPortal(teacherPortalTemplate):
       "status": o["status"],
       "message": o["message"],
     } for o in orders])
+
+  def run_snapshot(self, **event_args):
+    self.results_box.text = "Starting refresh + snapshot in the background…"
+    try:
+      result = anvil.server.call("launch_refresh_and_snapshot", self.simcode)
+    except Exception as error:
+      self.results_box.text = "Could not start the snapshot task: " + str(error)
+      return
+    self.results_box.text = (
+      "Snapshot task started for %s. Re-run Refresh in a minute to see it "
+      "in the history (background tasks report only in the app logs)."
+      % result.get("simcode", ""))
 
   def run_integrity(self, **event_args):
     self.results_box.text = "Running integrity check…"

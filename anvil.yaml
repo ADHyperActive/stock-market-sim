@@ -313,6 +313,70 @@ db_schema:
     indexes: []
     server: full
     title: Transactions
+  snapshots:
+    client: none
+    columns:
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: simulation
+      target: simulations
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: student
+      target: student_data
+      type: link_single
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: snapshot_at
+      type: datetime
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: date_str
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: cash
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: holdings_value
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: total_value
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: gain_loss
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: return
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: rank
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: benchmark_ticker
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: benchmark_price
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: benchmark_return
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: market_data_status
+      type: string
+    indexes: []
+    server: full
+    title: Snapshots
   users:
     client: search
     columns:

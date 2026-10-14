@@ -50,8 +50,7 @@ class studentPortal(studentPortalTemplate):
       {"id": "message", "title": "Message", "data_key": "message"},
     ]
     self.outlined_card_8.add_component(self.orders_grid)
-    self.history_note = Label(
-      text="Daily history will appear after snapshots (later milestone).")
+    self.history_note = Label(text="Loading history…")
     self.outlined_card_10.add_component(self.history_note)
     self.back_link = Link(text="Back to home")
     self.back_link.add_event_handler("click", lambda **e: open_form("Launch"))
@@ -137,6 +136,20 @@ class studentPortal(studentPortalTemplate):
     self.submitButton.enabled = bool(data.get("tradingOpen"))
     self.submitButton.text = ("Submit Order" if data.get("tradingOpen")
                               else "Trading is closed")
+    try:
+      history = anvil.server.call("recent_history", self.simcode)
+    except Exception:
+      history = {"ok": False}
+    points = history.get("points", []) if history.get("ok") else []
+    if len(points) < 2:
+      self.history_note.text = ("Daily history will appear after at least "
+                                "two snapshots.")
+    else:
+      latest = points[-1]
+      self.history_note.text = (
+        "%d snapshot(s) · latest %s · return %s · benchmark %s." % (
+          len(points), latest["date"], _percent(latest["returnRate"]),
+          _percent(latest["benchmarkReturn"])))
 
   def submit_order(self, **event_args):
     try:
