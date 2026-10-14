@@ -1,6 +1,7 @@
 from ._anvil_designer import simSettingsTemplate
 from anvil import *
 import anvil.server
+from anvil_extras import Switch
 
 
 DEFAULTS = {
