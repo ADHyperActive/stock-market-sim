@@ -11,9 +11,10 @@ Two launch paths share the same worker:
   - Teacher button: launch_refresh_and_snapshot() enforces the teacher
     gate, then fires background_refresh_and_snapshot() via
     anvil.server.launch_background_task and returns immediately.
-  - Anvil Scheduled Tasks (owner attaches in the editor, e.g. daily):
-    scheduled_refresh_all() loops every active+open sim and launches one
-    background task per sim.
+  - Anvil Scheduled Tasks (owner attaches in the editor as a plain
+    interval): scheduled_refresh_all() enforces the run window in code
+    (weekdays, 09:00-18:00 ET) because the scheduler has no quiet hours,
+    then launches one background task per sim.
 
 Background workers run without a user session, so the worker trusts only
 the simcode and re-validates the sim row; the teacher gate lives in the
@@ -33,6 +34,19 @@ from anvil.tables import app_tables
 import market
 from orders import _money, _position_totals
 from teachers import _teacher_sim
+
+
+def _et_now():
+  """Current time in the market timezone (market.ET is America/New_York)."""
+  return datetime.now(timezone.utc).astimezone(market.ET)
+
+
+def _in_run_window(now=None):
+  """True on weekdays 09:00-18:00 ET. The interval scheduler cannot do
+  quiet hours, so this gate keeps nights and weekends from launching
+  pointless background tasks and Alpaca calls."""
+  et = now or _et_now()
+  return et.weekday() < 5 and 9 <= et.hour < 18
 
 
 def _benchmark_ticker(config):
@@ -59,15 +73,21 @@ def _benchmark_start(sim):
   return start if start > 0 else None
 
 
-def refresh_and_snapshot(simcode):
-  """One refresh + snapshot pass for a sim. Returns a result dict."""
+def refresh_and_snapshot(simcode, force_snapshot=False):
+  """One refresh + snapshot pass for a sim. Returns a result dict.
+
+  Prices always refresh. Snapshot rows are end-of-day records, so they
+  are written only after the close (ET hour >= 16) unless force_snapshot
+  is true (teacher button).
+  """
   code = str(simcode or "").strip().upper()
   sim = app_tables.simulations.get(simcode=code)
   if sim is None:
     return {"ok": False, "message": "Unknown simulation code."}
   config = dict(sim["config"] or {})
-  now = datetime.now(timezone.utc)
-  date_str = now.astimezone(market.ET).strftime("%Y-%m-%d")
+  now = _et_now()
+  date_str = now.strftime("%Y-%m-%d")
+  snapshot_due = bool(force_snapshot or now.hour >= 16)
 
   tickers = set()
   for h in app_tables.holdings.search(simulation=sim):
@@ -110,7 +130,8 @@ def refresh_and_snapshot(simcode):
   written = 0
   skipped = 0
   for student, cash, holdings_value, total, gain, rate in valued:
-    if student["email"] in already:
+    # Pre-close runs refresh prices only; snapshots are end-of-day records.
+    if not snapshot_due or student["email"] in already:
       skipped += 1
       continue
     app_tables.snapshots.add_row(
@@ -132,15 +153,16 @@ def refresh_and_snapshot(simcode):
     written += 1
   return {"ok": True, "simcode": code, "date": date_str,
           "written": written, "skipped": skipped,
+          "snapshot_due": snapshot_due,
           "students": len(students), "benchmark": benchmark,
           "benchmark_price": bench_price}
 
 
 @anvil.server.background_task
-def background_refresh_and_snapshot(simcode):
+def background_refresh_and_snapshot(simcode, force_snapshot=False):
   """Background-task entry: same worker, no user session, no return."""
   try:
-    result = refresh_and_snapshot(simcode)
+    result = refresh_and_snapshot(simcode, force_snapshot=force_snapshot)
     print("snapshot result: " + str(result))
   except Exception as error:
     print("snapshot failed for " + str(simcode) + ": " + str(error))
@@ -148,17 +170,26 @@ def background_refresh_and_snapshot(simcode):
 
 @anvil.server.callable
 def launch_refresh_and_snapshot(simcode):
-  """Teacher button: gate, then run the worker in the background."""
+  """Teacher button: gate, then run the worker in the background.
+
+  Passes force_snapshot=True so the button always writes, even pre-close.
+  """
   sim, _teacher = _teacher_sim(str(simcode or "").strip().upper())
   anvil.server.launch_background_task(
-    "background_refresh_and_snapshot", sim["simcode"])
+    "background_refresh_and_snapshot", sim["simcode"], True)
   return {"ok": True, "simcode": sim["simcode"], "started": True}
 
 
 @anvil.server.callable
 def scheduled_refresh_all():
-  """Scheduled-task entry (owner attaches in the editor): one background
-  task per active+open sim. Skips sims with no active students."""
+  """Scheduled-task entry (owner attaches in the editor as a plain
+  interval): one background task per active+open sim. Skips sims with no
+  active students. Nights and weekends are gated out here because the
+  scheduler has no quiet hours. Market holidays still fire (they are
+  weekdays) and will write one snapshot set on carried-over prices —
+  harmless, but the teacher can delete those rows or leave them."""
+  if not _in_run_window():
+    return {"ok": True, "launched": [], "skipped": "outside run window"}
   launched = []
   for sim in app_tables.simulations.search(active=True, open=True):
     code = sim["simcode"]
