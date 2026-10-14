@@ -106,14 +106,14 @@ class debugPortal(debugPortalTemplate):
       alert("Raw dump: " + raw.get("message", "failed."))
       return
     alert(
-      "ticker: %(ticker)s\n"
-      "timestamp: %(timestamp)s\n"
-      "timestamp_naive(assumed UTC): %(timestamp_naive)s\n"
-      "server_now_utc: %(server_now_utc)s\n"
-      "age_seconds: %(age_seconds)s\n"
-      "bid: %(bid_price)s x %(bid_size)s\n"
-      "ask: %(ask_price)s x %(ask_size)s\n"
-      "market_open: %(market_open)s" % raw)
+      "ticker: " + str(raw.get("ticker")) + "\n"
+      "timestamp: " + str(raw.get("timestamp")) + "\n"
+      "timestamp_naive(assumed UTC): " + str(raw.get("timestamp_naive")) + "\n"
+      "server_now_utc: " + str(raw.get("server_now_utc")) + "\n"
+      "age_seconds: " + str(raw.get("age_seconds")) + "\n"
+      "bid: " + str(raw.get("bid_price")) + " x " + str(raw.get("bid_size")) + "\n"
+      "ask: " + str(raw.get("ask_price")) + " x " + str(raw.get("ask_size")) + "\n"
+      "market_open: " + str(raw.get("market_open")))
 
   def refresh_roster(self, select_first=False, select_email=""):
     try:      panel = anvil.server.call("teacher_panel", self.simcode)
