@@ -63,7 +63,7 @@ db_schema:
     server: full
     title: Prices
   simulations:
-    client: full
+    client: none
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
@@ -163,7 +163,7 @@ db_schema:
     server: full
     title: Snapshots
   student_data:
-    client: full
+    client: none
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
@@ -238,7 +238,7 @@ db_schema:
     server: full
     title: Student Data
   transactions:
-    client: full
+    client: none
     columns:
     - admin_ui: {width: 200}
       client_hidden: false
