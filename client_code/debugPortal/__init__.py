@@ -58,6 +58,9 @@ class debugPortal(debugPortalTemplate):
     self.back_link.add_event_handler(
       "click", lambda **e: open_form("simSettings", simcode=self.simcode))
     self.navbar_links.add_component(self.back_link)
+    self.raw_link = Link(text="Raw quote dump")
+    self.raw_link.add_event_handler("click", self.dump_raw_quote)
+    self.navbar_links.add_component(self.raw_link)
     self.userSelectDropdown.add_event_handler("change", self.load_selected)
     self.applyButton.add_event_handler("click", self.load_selected)
     self.createNewUserButton.add_event_handler("click", self.create_debug_user)
@@ -89,9 +92,31 @@ class debugPortal(debugPortalTemplate):
       quote["ticker"], _money(quote["price"]), label)
     self.tickerPill.level = "info"
 
-  def refresh_roster(self, select_first=False, select_email=""):
+  def dump_raw_quote(self, **event_args):
+    ticker = str(self.tickerBox.text or "").strip()
+    if not ticker:
+      alert("Type a ticker first.")
+      return
     try:
-      panel = anvil.server.call("teacher_panel", self.simcode)
+      raw = anvil.server.call("debug_raw_quote", self.simcode, ticker)
+    except Exception as error:
+      alert("Raw dump failed: " + str(error))
+      return
+    if not raw.get("ok"):
+      alert("Raw dump: " + raw.get("message", "failed."))
+      return
+    alert(
+      "ticker: %(ticker)s\n"
+      "timestamp: %(timestamp)s\n"
+      "timestamp_naive(assumed UTC): %(timestamp_naive)s\n"
+      "server_now_utc: %(server_now_utc)s\n"
+      "age_seconds: %(age_seconds)s\n"
+      "bid: %(bid_price)s x %(bid_size)s\n"
+      "ask: %(ask_price)s x %(ask_size)s\n"
+      "market_open: %(market_open)s" % raw)
+
+  def refresh_roster(self, select_first=False, select_email=""):
+    try:      panel = anvil.server.call("teacher_panel", self.simcode)
     except Exception as error:
       alert("The debug portal could not load: " + str(error))
       return
