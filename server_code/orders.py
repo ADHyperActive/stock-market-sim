@@ -432,3 +432,34 @@ def get_portfolio(simcode):
     },
     "holdings": positions,
   }
+
+
+@anvil.server.callable
+def preview_quote(simcode, ticker):
+  """Live price preview for the ticker pill. Read-only; never places orders.
+  Caller must be the teacher of the sim or an active student in it."""
+  email = _caller_email()
+  code = str(simcode or "").strip().upper()
+  sim = app_tables.simulations.get(simcode=code)
+  if sim is None:
+    return {"ok": False, "message": "Unknown simulation code."}
+  is_teacher = str(sim["teacher_email"] or "").strip().lower() == email
+  if not is_teacher:
+    student = app_tables.student_data.get(simcode=code, email=email)
+    if student is None or not student["active"]:
+      return {"ok": False, "message": "No active account in this simulation."}
+  clean = str(ticker or "").strip().upper()
+  if not TICKER_RE.match(clean):
+    return {"ok": False, "message": "Enter a valid ticker symbol."}
+  quote = get_execution_quote(clean, "BUY")
+  if not quote.get("ok"):
+    return {"ok": False, "message": "No price available for " + clean + "."}
+  return {
+    "ok": True,
+    "ticker": clean,
+    "price": quote["price"],
+    "bid": quote.get("bid", ""),
+    "ask": quote.get("ask", ""),
+    "source": quote.get("source", ""),
+    "classification": quote.get("classification", ""),
+  }

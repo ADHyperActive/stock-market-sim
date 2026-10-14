@@ -18,28 +18,36 @@ def _percent(value):
     return "—"
 
 
+def _fill_grid(grid, rows):
+  """Populate a programmatic DataGrid. DataGrid has no .rows attribute;
+  rows are DataRowPanels whose item keys match the columns' data_keys."""
+  grid.clear()
+  for record in rows:
+    grid.add_component(DataRowPanel(item=record))
+
+
 class studentPortal(studentPortalTemplate):
   def __init__(self, simcode="", **properties):
     super().__init__(**properties)
     self.simcode = simcode or ""
     self.holdings_grid = DataGrid(auto_header=True, rows_per_page=50)
     self.holdings_grid.columns = [
-      {"id": "ticker", "title": "Ticker"},
-      {"id": "shares", "title": "Shares"},
-      {"id": "avgCost", "title": "Avg. cost"},
-      {"id": "price", "title": "Price"},
-      {"id": "marketValue", "title": "Market value"},
-      {"id": "unrealizedGain", "title": "Gain/loss"},
-      {"id": "returnRate", "title": "Return"},
+      {"id": "ticker", "title": "Ticker", "data_key": "ticker"},
+      {"id": "shares", "title": "Shares", "data_key": "shares"},
+      {"id": "avgCost", "title": "Avg. cost", "data_key": "avgCost"},
+      {"id": "price", "title": "Price", "data_key": "price"},
+      {"id": "marketValue", "title": "Market value", "data_key": "marketValue"},
+      {"id": "unrealizedGain", "title": "Gain/loss", "data_key": "unrealizedGain"},
+      {"id": "returnRate", "title": "Return", "data_key": "returnRate"},
     ]
     self.outlined_card_7.add_component(self.holdings_grid)
     self.orders_grid = DataGrid(auto_header=True, rows_per_page=10)
     self.orders_grid.columns = [
-      {"id": "submittedAt", "title": "Submitted"},
-      {"id": "status", "title": "Status"},
-      {"id": "summary", "title": "Order"},
-      {"id": "price", "title": "Price"},
-      {"id": "message", "title": "Message"},
+      {"id": "submittedAt", "title": "Submitted", "data_key": "submittedAt"},
+      {"id": "status", "title": "Status", "data_key": "status"},
+      {"id": "summary", "title": "Order", "data_key": "summary"},
+      {"id": "price", "title": "Price", "data_key": "price"},
+      {"id": "message", "title": "Message", "data_key": "message"},
     ]
     self.outlined_card_8.add_component(self.orders_grid)
     self.history_note = Label(
@@ -49,7 +57,28 @@ class studentPortal(studentPortalTemplate):
     self.back_link.add_event_handler("click", lambda **e: open_form("Launch"))
     self.navbar_links.add_component(self.back_link)
     self.submitButton.add_event_handler("click", self.submit_order)
+    self.tickerBox.add_event_handler("lost_focus", self.preview_ticker)
     self.refresh()
+
+  def preview_ticker(self, **event_args):
+    ticker = str(self.tickerBox.text or "").strip()
+    if not ticker:
+      self.tickerPill.message = "Enter any U.S. stock or ETF ticker."
+      self.tickerPill.level = "info"
+      return
+    try:
+      quote = anvil.server.call("preview_quote", self.simcode, ticker)
+    except Exception:
+      self.tickerPill.message = "Price unavailable right now."
+      self.tickerPill.level = "warning"
+      return
+    if not quote.get("ok"):
+      self.tickerPill.message = quote.get("message", "Price unavailable.")
+      self.tickerPill.level = "warning"
+      return
+    self.tickerPill.message = "%s · %s (TEST DATA)" % (
+      quote["ticker"], _money(quote["price"]))
+    self.tickerPill.level = "info"
 
   def refresh(self):
     try:
@@ -82,20 +111,20 @@ class studentPortal(studentPortalTemplate):
         "unrealizedGain": _money(holding["unrealizedGain"]),
         "returnRate": _percent(holding["returnRate"]),
       })
-    self.holdings_grid.rows = rows
+    _fill_grid(self.holdings_grid, rows)
     try:
       orders = anvil.server.call("recent_orders", self.simcode)
     except Exception:
       orders = {"ok": False}
     if orders.get("ok"):
-      self.orders_grid.rows = [{
+      _fill_grid(self.orders_grid, [{
         "submittedAt": o["submittedAt"],
         "status": o["status"],
         "summary": " ".join(str(part) for part in
                             [o["side"], o["shares"], o["ticker"]] if part),
         "price": _money(o["price"]) if o["price"] != "" else "—",
         "message": o["message"],
-      } for o in orders["orders"]]
+      } for o in orders["orders"]])
     self.submitButton.enabled = bool(data.get("tradingOpen"))
     self.submitButton.text = ("Submit Order" if data.get("tradingOpen")
                               else "Trading is closed")

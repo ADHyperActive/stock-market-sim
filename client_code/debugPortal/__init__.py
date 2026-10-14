@@ -18,6 +18,14 @@ def _percent(value):
     return "—"
 
 
+def _fill_grid(grid, rows):
+  """Populate a programmatic DataGrid. DataGrid has no .rows attribute;
+  rows are DataRowPanels whose item keys match the columns' data_keys."""
+  grid.clear()
+  for record in rows:
+    grid.add_component(DataRowPanel(item=record))
+
+
 class debugPortal(debugPortalTemplate):
   def __init__(self, simcode="", **properties):
     super().__init__(**properties)
@@ -25,22 +33,22 @@ class debugPortal(debugPortalTemplate):
     self.target = ""
     self.holdings_grid = DataGrid(auto_header=True, rows_per_page=50)
     self.holdings_grid.columns = [
-      {"id": "ticker", "title": "Ticker"},
-      {"id": "shares", "title": "Shares"},
-      {"id": "avgCost", "title": "Avg. cost"},
-      {"id": "price", "title": "Price"},
-      {"id": "marketValue", "title": "Market value"},
-      {"id": "unrealizedGain", "title": "Gain/loss"},
-      {"id": "returnRate", "title": "Return"},
+      {"id": "ticker", "title": "Ticker", "data_key": "ticker"},
+      {"id": "shares", "title": "Shares", "data_key": "shares"},
+      {"id": "avgCost", "title": "Avg. cost", "data_key": "avgCost"},
+      {"id": "price", "title": "Price", "data_key": "price"},
+      {"id": "marketValue", "title": "Market value", "data_key": "marketValue"},
+      {"id": "unrealizedGain", "title": "Gain/loss", "data_key": "unrealizedGain"},
+      {"id": "returnRate", "title": "Return", "data_key": "returnRate"},
     ]
     self.outlined_card_7.add_component(self.holdings_grid)
     self.orders_grid = DataGrid(auto_header=True, rows_per_page=10)
     self.orders_grid.columns = [
-      {"id": "submittedAt", "title": "Submitted"},
-      {"id": "status", "title": "Status"},
-      {"id": "summary", "title": "Order"},
-      {"id": "price", "title": "Price"},
-      {"id": "message", "title": "Message"},
+      {"id": "submittedAt", "title": "Submitted", "data_key": "submittedAt"},
+      {"id": "status", "title": "Status", "data_key": "status"},
+      {"id": "summary", "title": "Order", "data_key": "summary"},
+      {"id": "price", "title": "Price", "data_key": "price"},
+      {"id": "message", "title": "Message", "data_key": "message"},
     ]
     self.outlined_card_8.add_component(self.orders_grid)
     self.history_note = Label(
@@ -54,9 +62,30 @@ class debugPortal(debugPortalTemplate):
     self.applyButton.add_event_handler("click", self.load_selected)
     self.createNewUserButton.add_event_handler("click", self.create_debug_user)
     self.submitButton.add_event_handler("click", self.submit_as_target)
+    self.tickerBox.add_event_handler("lost_focus", self.preview_ticker)
     self.tickerPill.message = "DEBUG PORTAL — teacher only, TEST DATA."
     self.tickerPill.level = "warning"
     self.refresh_roster(select_first=True)
+
+  def preview_ticker(self, **event_args):
+    ticker = str(self.tickerBox.text or "").strip()
+    if not ticker:
+      self.tickerPill.message = "DEBUG PORTAL — teacher only, TEST DATA."
+      self.tickerPill.level = "warning"
+      return
+    try:
+      quote = anvil.server.call("preview_quote", self.simcode, ticker)
+    except Exception:
+      self.tickerPill.message = "DEBUG · price unavailable right now."
+      self.tickerPill.level = "warning"
+      return
+    if not quote.get("ok"):
+      self.tickerPill.message = "DEBUG · " + quote.get("message", "Price unavailable.")
+      self.tickerPill.level = "warning"
+      return
+    self.tickerPill.message = "DEBUG · %s · %s (TEST DATA)" % (
+      quote["ticker"], _money(quote["price"]))
+    self.tickerPill.level = "info"
 
   def refresh_roster(self, select_first=False, select_email=""):
     try:
@@ -102,7 +131,7 @@ class debugPortal(debugPortalTemplate):
     self.gainLossBox.text = _money(student["dollarGainLoss"])
     self.rankBox.text = ("#%d of %d" % (student["rank"], student["rankOf"])
                          if student["rank"] else "—")
-    self.holdings_grid.rows = [{
+    _fill_grid(self.holdings_grid, [{
       "ticker": holding["ticker"],
       "shares": holding["shares"],
       "avgCost": _money(holding["avgCost"]),
@@ -110,20 +139,20 @@ class debugPortal(debugPortalTemplate):
       "marketValue": _money(holding["marketValue"]),
       "unrealizedGain": _money(holding["unrealizedGain"]),
       "returnRate": _percent(holding["returnRate"]),
-    } for holding in data["holdings"]]
+    } for holding in data["holdings"]])
     try:
       orders = anvil.server.call("debug_recent_as", self.simcode, self.target)
     except Exception:
       orders = {"ok": False}
     if orders.get("ok"):
-      self.orders_grid.rows = [{
+      _fill_grid(self.orders_grid, [{
         "submittedAt": o["submittedAt"],
         "status": o["status"],
         "summary": " ".join(str(part) for part in
                             [o["side"], o["shares"], o["ticker"]] if part),
         "price": _money(o["price"]) if o["price"] != "" else "—",
         "message": o["message"],
-      } for o in orders["orders"]]
+      } for o in orders["orders"]])
     self.submitButton.enabled = bool(data.get("tradingOpen"))
     self.submitButton.text = ("Submit Order" if data.get("tradingOpen")
                               else "Trading is closed")
