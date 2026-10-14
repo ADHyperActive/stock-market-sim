@@ -1,10 +1,13 @@
-"""Integrity check + diagnostics (read-only).
+"""Integrity check + diagnostics + interrupted-order recovery.
 
 Ported from the classroom Apps Script integrity checker
-(analyzeIntegrityData_ semantics): ledger replay, duplicate detection, and
-per-row commit-math verification. These callables never write anything —
-they only read and report. Every callable is teacher-gated via
-teachers._teacher_sim.
+(analyzeIntegrityData_ semantics) and journal recovery
+(recoverJournalRowLocked_ semantics): ledger replay, duplicate detection,
+per-row commit-math verification, and PREPARED-orphan resolution. The check
+and diagnostics callables never write anything — they only read and report.
+recover_prepared() is the one writer here: it only ever flips a stale
+PREPARED row to ACCEPTED or ABORTED and never rewrites account balances.
+Every callable is teacher-gated via teachers._teacher_sim.
 
 Conventions mirrored from the engine (orders.py):
 - money tolerance 0.011 per step (classroom journalAmounts_);
@@ -321,3 +324,104 @@ def diagnostics(simcode):
     "summary": ("%s. Failing: %s." % (status, ", ".join(failed) if failed else "none")),
     "checks": checks,
   }
+
+
+RECOVERY_MIN_AGE_SECONDS = 300
+
+
+@anvil.server.callable
+def recover_prepared(simcode, min_age_seconds=RECOVERY_MIN_AGE_SECONDS,
+                     order_id="", dry_run=False):
+  """Resolve stale PREPARED rows left by interrupted commits.
+
+  Mirrors the classroom recoverJournalRowLocked_ decision rule using the
+  account state alone (no price re-check — the row already carries its
+  execution price):
+  - account matches the row's post-state (cash_after / shares_after)
+    -> the writes landed; finalize ACCEPTED.
+  - account matches the row's pre-state (cash_before / shares_before)
+    -> no write landed; ABORTED, no trade occurred.
+  - anything else -> CONFLICT: left untouched for manual review.
+
+  Only rows older than min_age_seconds are eligible, so a live commit in
+  flight is never touched. dry_run=True reports the decisions without
+  writing. Only the row's status/message/executed_at/completed_at are ever
+  written — balances and holdings are only read.
+  """
+  sim, _teacher = _teacher_sim(str(simcode or "").strip().upper())
+  try:
+    min_age = max(60, int(min_age_seconds))
+  except (TypeError, ValueError):
+    min_age = RECOVERY_MIN_AGE_SECONDS
+  only = str(order_id or "").strip()
+  cutoff = _now().timestamp() - min_age
+  actions = []
+  counts = {"accepted": 0, "aborted": 0, "conflict": 0, "skipped": 0}
+  for row in app_tables.transactions.search(simulation=sim, status="PREPARED"):
+    row_id = str(row["order_id"] or "")
+    if only and row_id != only:
+      continue
+    prepared = row["prepared_at"]
+    try:
+      age_ok = prepared is None or prepared.timestamp() <= cutoff
+    except (AttributeError, TypeError, ValueError):
+      age_ok = True
+    if not age_ok:
+      actions.append({"orderId": row_id, "action": "SKIPPED",
+                      "detail": "Prepared too recently; left for the live commit."})
+      counts["skipped"] += 1
+      continue
+    student = row["student"]
+    if student is None:
+      actions.append({"orderId": row_id, "action": "CONFLICT",
+                      "detail": "Student link missing; manual review required."})
+      counts["conflict"] += 1
+      continue
+    ticker = str(row["ticker"] or "")
+    holdings = app_tables.holdings.search(simulation=sim, student=student,
+                                          ticker=ticker)
+    holding = holdings[0] if len(holdings) else None
+    try:
+      cash_now = float(student["cash_balance"] or 0)
+    except (TypeError, ValueError):
+      cash_now = 0.0
+    shares_now = holding["shares"] if holding is not None else 0
+    try:
+      shares_now = int(shares_now)
+    except (TypeError, ValueError):
+      shares_now = 0
+    try:
+      shares_before = int(row["shares_before"] or 0)
+      shares_after = int(row["shares_after"] or 0)
+    except (TypeError, ValueError):
+      shares_before = shares_after = -1
+    post_match = (_close_enough(cash_now, row["cash_after"], MONEY_TOL)
+                  and shares_now == shares_after)
+    pre_match = (_close_enough(cash_now, row["cash_before"], MONEY_TOL)
+                 and shares_now == shares_before)
+    if post_match and not pre_match:
+      action, detail = "ACCEPTED", "Account already reflects the trade; finalized."
+    elif pre_match and not post_match:
+      action, detail = "ABORTED", "No account write landed; no trade occurred."
+    else:
+      actions.append({"orderId": row_id, "action": "CONFLICT",
+                      "detail": "Account matches neither pre- nor post-state; "
+                                "manual review required."})
+      counts["conflict"] += 1
+      continue
+    if not dry_run:
+      stamp = _now()
+      row["status"] = action
+      row["message"] = "Recovered: " + detail
+      if action == "ACCEPTED" and row["executed_at"] is None:
+        row["executed_at"] = stamp
+      row["completed_at"] = stamp
+    actions.append({"orderId": row_id,
+                    "action": action + (" (dry run)" if dry_run else ""),
+                    "detail": detail})
+    counts["accepted" if action == "ACCEPTED" else "aborted"] += 1
+  summary = ("%d finalized, %d aborted, %d conflict(s), %d skipped%s." % (
+    counts["accepted"], counts["aborted"], counts["conflict"],
+    counts["skipped"], " (dry run)" if dry_run else ""))
+  return {"ok": True, "simcode": sim["simcode"], "summary": summary,
+          "actions": actions, "counts": counts}

@@ -77,6 +77,9 @@ class teacherPortal(teacherPortalTemplate):
     self.snapshot_button = Button(text="Refresh + snapshot now")
     self.snapshot_button.add_event_handler("click", self.run_snapshot)
     buttons.add_component(self.snapshot_button)
+    self.recover_button = Button(text="Recover interrupted orders")
+    self.recover_button.add_event_handler("click", self.run_recover)
+    buttons.add_component(self.recover_button)
     back = Link(text="Back to settings")
     back.add_event_handler(
       "click", lambda **e: open_form("simSettings", simcode=self.simcode))
@@ -160,6 +163,20 @@ class teacherPortal(teacherPortalTemplate):
       "Snapshot task started for %s. Re-run Refresh in a minute to see it "
       "in the history (background tasks report only in the app logs)."
       % result.get("simcode", ""))
+
+  def run_recover(self, **event_args):
+    self.results_box.text = "Recovering interrupted orders…"
+    try:
+      result = anvil.server.call("recover_prepared", self.simcode)
+    except Exception as error:
+      self.results_box.text = "Recovery failed: " + str(error)
+      return
+    lines = [result.get("summary", "")]
+    for action in result.get("actions", []):
+      lines.append("%s: %s — %s" % (
+        action.get("orderId", "?"), action.get("action", "?"),
+        action.get("detail", "")))
+    self.results_box.text = "\n".join(lines)
 
   def run_integrity(self, **event_args):
     self.results_box.text = "Running integrity check…"
