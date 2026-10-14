@@ -51,8 +51,7 @@ class debugPortal(debugPortalTemplate):
       {"id": "message", "title": "Message", "data_key": "message"},
     ]
     self.outlined_card_8.add_component(self.orders_grid)
-    self.history_note = Label(
-      text="Daily history will appear after snapshots (later milestone).")
+    self.history_note = Label(text="Loading history…")
     self.outlined_card_10.add_component(self.history_note)
     self.back_link = Link(text="Back to settings")
     self.back_link.add_event_handler(
@@ -189,6 +188,59 @@ class debugPortal(debugPortalTemplate):
     self.submitButton.enabled = bool(data.get("tradingOpen"))
     self.submitButton.text = ("Submit Order" if data.get("tradingOpen")
                               else "Trading is closed")
+    try:
+      history = anvil.server.call(
+        "debug_history_as", self.simcode, self.target)
+    except Exception:
+      history = {"ok": False}
+    points = history.get("points", []) if history.get("ok") else []
+    if len(points) < 2:
+      self.history_note.text = ("Daily history will appear after at least "
+                                "two snapshots.")
+    else:
+      latest = points[-1]
+      self.history_note.text = (
+        "%d snapshot(s) · latest %s · return %s · benchmark %s." % (
+          len(points), latest["date"], _percent(latest["returnRate"]),
+          _percent(latest["benchmarkReturn"])))
+    self._draw_history(points)
+
+  def _draw_history(self, points):
+    """Return-over-time chart (Plotly) or a text fallback.
+
+    Same guarded pattern as the student portal: the import is lazy, and
+    without the component library the portal keeps the textual summary.
+    """
+    if getattr(self, "_chart", None) is None:
+      self._chart = None
+    if len(points) < 2:
+      if self._chart is not None:
+        self._chart.visible = False
+      return
+    try:
+      import plotly.graph_objects as go
+      from anvil import Plot
+    except Exception:
+      return
+    dates = [p["date"] or "" for p in points]
+    portfolio = [float(p["returnRate"] or 0) * 100 for p in points]
+    benchmark = [float(p["benchmarkReturn"] or 0) * 100 for p in points]
+    if self._chart is None:
+      self._chart = Plot(height=260)
+      self.outlined_card_10.add_component(self._chart)
+    self._chart.visible = True
+    self._chart.data = [
+      go.Scatter(x=dates, y=portfolio, mode="lines+markers",
+                 name="Target portfolio"),
+      go.Scatter(x=dates, y=benchmark, mode="lines+markers",
+                 name="Benchmark"),
+    ]
+    self._chart.layout = {
+      "title": "Return over time (%)",
+      "xaxis": {"title": "Date"},
+      "yaxis": {"title": "Return (%)"},
+      "margin": {"l": 50, "r": 20, "t": 40, "b": 50},
+    }
 
   def create_debug_user(self, **event_args):
     email = str(self.testUserEmail.text or "").strip()

@@ -274,6 +274,44 @@ def debug_recent_as(simcode, target_email, limit=10):
   ]}
 
 
+@anvil.server.callable
+def debug_history_as(simcode, target_email, limit=90):
+  """recent_history for an explicit account. Teacher only.
+
+  Same point shape as history.recent_history; the row-to-point mapping is
+  deliberately duplicated here so history.py stays untouched.
+  """
+  sim, _teacher = _teacher_sim(simcode)
+  email = str(target_email or "").strip().lower()
+  student = app_tables.student_data.get(simcode=sim["simcode"], email=email)
+  if student is None:
+    return {"ok": False, "message": "No account in this simulation."}
+  try:
+    count = max(2, min(365, int(limit)))
+  except (TypeError, ValueError):
+    count = 90
+  rows = sorted(
+    app_tables.snapshots.search(student=student),
+    key=lambda r: (r["snapshot_at"] is None, r["snapshot_at"]),
+  )[-count:]
+  points = []
+  for row in rows:
+    try:
+      ret = float(row["return"] or 0)
+    except (TypeError, ValueError):
+      ret = 0.0
+    try:
+      bench = float(row["benchmark_return"] or 0)
+    except (TypeError, ValueError):
+      bench = 0.0
+    points.append({
+      "date": row["date_str"] or "",
+      "returnRate": ret,
+      "benchmarkReturn": bench,
+    })
+  return {"ok": True, "simcode": sim["simcode"], "points": points}
+
+
 def _debug_reject(sim, student, clean, message, quote):
   """_journal_reject with channel DEBUG. Mirrors orders._journal_reject."""
   submitted = _now()
