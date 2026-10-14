@@ -428,9 +428,15 @@ scheduled_tasks:
 - job_id: IHOUWYWJ
   task_name: background_refresh_and_snapshot
   time_spec:
-    at: {}
-    every: minute
-    n: 15
+    at: {minute: 0}
+    every: hour
+    n: 1
+- job_id: LNSXBUVT
+  task_name: background_refresh_and_snapshot
+  time_spec:
+    at: {minute: 30}
+    every: hour
+    n: 1
 secrets:
   alpaca_api:
     type: secret
