@@ -10,8 +10,8 @@ by the two-phase journal (PREPARED row first, request_id re-checked at
 finalize, losers marked ABORTED). This is check-then-write, not serializable
 isolation — acceptable at classroom scale.
 
-Quote provider below is a STUB (fixed test prices, classification TEST).
-The alpaca-py milestone replaces get_execution_quote() only; commit math,
+Quote provider lives in market.py (live Alpaca data via alpaca-py).
+get_execution_quote() below is a thin pass-through so the commit math,
 journal shape, and result shape stay unchanged.
 """
 
@@ -23,22 +23,18 @@ import anvil.server
 import anvil.users
 from anvil.tables import app_tables
 
+import market
+
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.-]{0,14}$")
 REQUEST_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]+$")
 MAX_REQUEST_ID = 120
 MAX_NOTE = 500
 DEFAULT_COMMISSION = 0.0
 
-# STUB prices. Every quote from this provider is marked classification TEST
-# and must never be mistaken for market data.
-TEST_PRICES = {
-  "AAPL": 230.00,
-  "MSFT": 420.00,
-  "SPY": 500.00,
-  "TSLA": 250.00,
-  "NVDA": 130.00,
-}
-TEST_DEFAULT_PRICE = 100.00
+def get_execution_quote(ticker, side, config=None):
+  """Live execution quote via market.py. Callers pass (ticker, side);
+  place_order also passes the sim config for freshness settings."""
+  return market.get_live_quote(ticker, side, config or {})
 
 
 def _now():
@@ -94,24 +90,6 @@ def _validate_order(side, ticker, shares, note, request_id):
     "note": clean_note,
     "request_id": rid,
   }, ""
-
-
-def get_execution_quote(ticker, side):
-  """STUB — replaced by the alpaca-py milestone. Fixed test prices."""
-  price = _money(TEST_PRICES.get(ticker, TEST_DEFAULT_PRICE))
-  now = _now()
-  spread = _money(max(0.01, price * 0.001))
-  return {
-    "ok": True,
-    "price": _money(price + spread) if side == "BUY" else _money(price - spread),
-    "bid": _money(price - spread),
-    "ask": _money(price + spread),
-    "quote_time": now,
-    "age_seconds": 0,
-    "source": "TEST_STUB",
-    "classification": "TEST",
-    "market_state": "TEST_OPEN",
-  }
 
 
 def _journal_reject(sim, student, clean, message, quote):
@@ -199,7 +177,7 @@ def place_order(simcode, side, ticker, shares, note="", request_id=""):
     return _journal_reject(sim, student, clean, "Trading is currently closed by the teacher.", None)
 
   commission = _money(config.get("commission", DEFAULT_COMMISSION))
-  quote = get_execution_quote(clean["ticker"], clean["side"])
+  quote = get_execution_quote(clean["ticker"], clean["side"], config)
   if not quote.get("ok"):
     return _journal_reject(sim, student, clean, "No trustworthy quote is available.", quote)
 
@@ -307,7 +285,7 @@ def place_order(simcode, side, ticker, shares, note="", request_id=""):
   executed = _now()
   row["status"] = "ACCEPTED"
   row["message"] = (
-    "%s %d share(s) of %s at $%.2f. Price source: %s (TEST DATA)."
+    "%s %d share(s) of %s at $%.2f. Price source: %s (LIVE DATA)."
     % (clean["side"], clean["shares"], clean["ticker"], price, quote["source"]))
   row["executed_at"] = executed
   row["completed_at"] = executed
@@ -359,10 +337,10 @@ def recent_orders(simcode, limit=10):
   ]}
 
 
-def _position_totals(sim, student):
-  """Holdings valued at average cost. TEST-phase valuation: with stub
-  quotes there is no market price yet, so unrealized gain is 0 by
-  construction. The market-data milestone replaces the price source."""
+def _position_totals(sim, student, prices=None):
+  """Holdings valued at live prices when a price map is given, else at
+  average cost (unrealized gain 0). prices: {ticker: {price, quote_time,
+  stale}} from market.get_valuation_prices."""
   positions = []
   holdings_value = 0.0
   for h in app_tables.holdings.search(simulation=sim, student=student):
@@ -370,16 +348,21 @@ def _position_totals(sim, student):
     if shares <= 0:
       continue
     avg = _money(h["avg_cost"] or 0)
-    value = _money(shares * avg)
+    live = (prices or {}).get(h["ticker"])
+    price = _money(live["price"]) if live and live.get("price") else avg
+    value = _money(shares * price)
+    unrealized = _money((price - avg) * shares)
+    basis = _money(shares * avg)
     holdings_value = _money(holdings_value + value)
     positions.append({
       "ticker": h["ticker"],
       "shares": shares,
       "avgCost": avg,
-      "price": avg,
+      "price": price,
       "marketValue": value,
-      "unrealizedGain": 0.0,
-      "returnRate": 0.0,
+      "unrealizedGain": unrealized,
+      "returnRate": (unrealized / basis) if basis else 0.0,
+      "stale": bool(live.get("stale")) if live else True,
     })
   positions.sort(key=lambda p: p["marketValue"], reverse=True)
   return positions, holdings_value
@@ -399,7 +382,14 @@ def get_portfolio(simcode):
   if not student["active"]:
     return {"ok": False, "message": "This account is inactive."}
 
-  positions, holdings_value = _position_totals(sim, student)
+  config = dict(sim["config"] or {})
+  tickers = set()
+  for h in app_tables.holdings.search(simulation=sim):
+    if int(h["shares"] or 0) > 0 and h["ticker"]:
+      tickers.add(h["ticker"])
+  live = market.get_valuation_prices(sorted(tickers), config)
+
+  positions, holdings_value = _position_totals(sim, student, live)
   cash = _money(student["cash_balance"] or 0)
   start = _money(student["start_cash"] or 0)
   total = _money(cash + holdings_value)
@@ -408,7 +398,7 @@ def get_portfolio(simcode):
 
   totals = []
   for other in app_tables.student_data.search(simcode=code, active=True):
-    opos, oval = _position_totals(sim, other)
+    opos, oval = _position_totals(sim, other, live)
     totals.append((other["email"], _money(_money(other["cash_balance"] or 0) + oval)))
   totals.sort(key=lambda t: t[1], reverse=True)
   rank = next((i + 1 for i, t in enumerate(totals) if t[0] == email), None)
@@ -417,7 +407,8 @@ def get_portfolio(simcode):
     "ok": True,
     "simcode": code,
     "tradingOpen": bool(sim["open"]),
-    "testData": True,
+    "testData": False,
+    "marketStatus": market.market_status(),
     "student": {
       "name": str(student["first_name"] or "") + " " + str(student["last_name"] or ""),
       "email": email,

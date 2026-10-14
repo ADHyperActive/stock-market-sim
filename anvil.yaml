@@ -283,6 +283,36 @@ db_schema:
     indexes: []
     server: full
     title: Transactions
+  prices:
+    client: none
+    columns:
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: ticker
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: price
+      type: number
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: quote_time
+      type: datetime
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: source
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: classification
+      type: string
+    - admin_ui: {width: 200}
+      client_hidden: false
+      name: retrieved_at
+      type: datetime
+    indexes: []
+    server: full
+    title: Prices
   users:
     client: search
     columns:

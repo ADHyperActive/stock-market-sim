@@ -63,14 +63,14 @@ class debugPortal(debugPortalTemplate):
     self.createNewUserButton.add_event_handler("click", self.create_debug_user)
     self.submitButton.add_event_handler("click", self.submit_as_target)
     self.tickerBox.add_event_handler("lost_focus", self.preview_ticker)
-    self.tickerPill.message = "DEBUG PORTAL — teacher only, TEST DATA."
+    self.tickerPill.message = "DEBUG PORTAL — teacher only, LIVE DATA."
     self.tickerPill.level = "warning"
     self.refresh_roster(select_first=True)
 
   def preview_ticker(self, **event_args):
     ticker = str(self.tickerBox.text or "").strip()
     if not ticker:
-      self.tickerPill.message = "DEBUG PORTAL — teacher only, TEST DATA."
+      self.tickerPill.message = "DEBUG PORTAL — teacher only, LIVE DATA."
       self.tickerPill.level = "warning"
       return
     try:
@@ -83,8 +83,10 @@ class debugPortal(debugPortalTemplate):
       self.tickerPill.message = "DEBUG · " + quote.get("message", "Price unavailable.")
       self.tickerPill.level = "warning"
       return
-    self.tickerPill.message = "DEBUG · %s · %s (TEST DATA)" % (
-      quote["ticker"], _money(quote["price"]))
+    source = str(quote.get("source", ""))
+    label = "LIVE" if source.startswith("ALPACA") else (source or "PRICE")
+    self.tickerPill.message = "DEBUG · %s · %s (%s)" % (
+      quote["ticker"], _money(quote["price"]), label)
     self.tickerPill.level = "info"
 
   def refresh_roster(self, select_first=False, select_email=""):

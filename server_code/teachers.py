@@ -25,6 +25,8 @@ from orders import (
   DEFAULT_COMMISSION,
 )
 
+import market
+
 STARTING_CASH = 10000  # Must match auth.STARTING_CASH.
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 TICKER_RE = re.compile(r"^[A-Z][A-Z0-9.-]{0,14}$")
@@ -191,7 +193,13 @@ def debug_portfolio_as(simcode, target_email):
     return {"ok": False, "message": "No account for " + email + " in this simulation."}
   if not student["active"]:
     return {"ok": False, "message": "This account is inactive."}
-  positions, holdings_value = _position_totals(sim, student)
+  config = dict(sim["config"] or {})
+  tickers = set()
+  for h in app_tables.holdings.search(simulation=sim):
+    if int(h["shares"] or 0) > 0 and h["ticker"]:
+      tickers.add(h["ticker"])
+  live = market.get_valuation_prices(sorted(tickers), config)
+  positions, holdings_value = _position_totals(sim, student, live)
   cash = _money(student["cash_balance"] or 0)
   start = _money(student["start_cash"] or 0)
   total = _money(cash + holdings_value)
@@ -199,7 +207,7 @@ def debug_portfolio_as(simcode, target_email):
   rate = (gain / start) if start else 0.0
   totals = []
   for other in app_tables.student_data.search(simcode=sim["simcode"], active=True):
-    _opos, oval = _position_totals(sim, other)
+    _opos, oval = _position_totals(sim, other, live)
     totals.append((other["email"], _money(_money(other["cash_balance"] or 0) + oval)))
   totals.sort(key=lambda t: t[1], reverse=True)
   rank = next((i + 1 for i, t in enumerate(totals) if t[0] == email), None)
@@ -207,7 +215,8 @@ def debug_portfolio_as(simcode, target_email):
     "ok": True,
     "simcode": sim["simcode"],
     "tradingOpen": bool(sim["open"]),
-    "testData": True,
+    "testData": False,
+    "marketStatus": market.market_status(),
     "student": {
       "name": (str(student["first_name"] or "") + " "
                + str(student["last_name"] or "")).strip(),
@@ -326,7 +335,7 @@ def debug_place_order(simcode, target_email, side, ticker, shares,
     return _debug_reject(sim, student, clean, "Trading is currently closed by the teacher.", None)
 
   commission = _money(config.get("commission", DEFAULT_COMMISSION))
-  quote = get_execution_quote(clean["ticker"], clean["side"])
+  quote = get_execution_quote(clean["ticker"], clean["side"], config)
   if not quote.get("ok"):
     return _debug_reject(sim, student, clean, "No trustworthy quote is available.", quote)
 
@@ -434,7 +443,7 @@ def debug_place_order(simcode, target_email, side, ticker, shares,
   executed = _now()
   row["status"] = "ACCEPTED"
   row["message"] = (
-    "%s %d share(s) of %s at $%.2f. Price source: %s (TEST DATA)."
+    "%s %d share(s) of %s at $%.2f. Price source: %s (LIVE DATA)."
     % (clean["side"], clean["shares"], clean["ticker"], price, quote["source"]))
   row["executed_at"] = executed
   row["completed_at"] = executed

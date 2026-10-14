@@ -76,8 +76,10 @@ class studentPortal(studentPortalTemplate):
       self.tickerPill.message = quote.get("message", "Price unavailable.")
       self.tickerPill.level = "warning"
       return
-    self.tickerPill.message = "%s · %s (TEST DATA)" % (
-      quote["ticker"], _money(quote["price"]))
+    source = str(quote.get("source", ""))
+    label = "LIVE" if source.startswith("ALPACA") else (source or "PRICE")
+    self.tickerPill.message = "%s · %s (%s)" % (
+      quote["ticker"], _money(quote["price"]), label)
     self.tickerPill.level = "info"
 
   def refresh(self):
@@ -97,9 +99,10 @@ class studentPortal(studentPortalTemplate):
     self.gainLossBox.text = _money(student["dollarGainLoss"])
     self.rankBox.text = ("#%d of %d" % (student["rank"], student["rankOf"])
                          if student["rank"] else "—")
-    if data.get("testData"):
-      self.tickerPill.message = "TEST DATA — stub prices, not market data."
-      self.tickerPill.level = "warning"
+    mode = (data.get("marketStatus") or {}).get("mode", "")
+    if mode == "PRE_MARKET":
+      self.tickerPill.message = "Pre-market session: BUY uses the ask, SELL uses the bid."
+      self.tickerPill.level = "info"
     rows = []
     for holding in data["holdings"]:
       rows.append({
