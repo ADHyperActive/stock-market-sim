@@ -78,7 +78,7 @@ class teacherPortal(teacherPortalTemplate):
     buttons.add_component(back)
     self.content_panel.add_component(buttons)
 
-    self.results_box = TextArea(readonly=True)
+    self.results_box = TextArea(enabled=False)
     self.results_box.height = 220
     self.content_panel.add_component(self.results_box)
 
