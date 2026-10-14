@@ -444,7 +444,7 @@ def preview_quote(simcode, ticker):
     return {"ok": False, "message": "Enter a valid ticker symbol."}
   quote = get_execution_quote(clean, "BUY")
   if not quote.get("ok"):
-    return {"ok": False, "message": "No price available for " + clean + "."}
+    return {"ok": False, "message": quote.get("message") or ("No price available for " + clean + ".")}
   return {
     "ok": True,
     "ticker": clean,
