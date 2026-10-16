@@ -157,6 +157,12 @@ def refresh_and_snapshot(simcode, force_snapshot=False):
           "students": len(students), "benchmark": benchmark,
           "benchmark_price": bench_price}
 
+@anvil.server.background_task
+def background_snapshot_all():
+  sim_table = app_tables.simulations
+  sim_rows = sim_table.search(open=True)
+  for row in sim_rows:
+    background_refresh_and_snapshot(row['simcode'])
 
 @anvil.server.background_task
 def background_refresh_and_snapshot(simcode, force_snapshot=False):

@@ -430,25 +430,25 @@ runtime_options:
   version: 3
 scheduled_tasks:
 - job_id: IHOUWYWJ
-  task_name: background_refresh_and_snapshot
+  task_name: background_snapshot_all
   time_spec:
     at: {minute: 0}
     every: hour
     n: 1
 - job_id: LNSXBUVT
-  task_name: background_refresh_and_snapshot
+  task_name: background_snapshot_all
   time_spec:
     at: {minute: 30}
     every: hour
     n: 1
 - job_id: QYMFWKDL
-  task_name: background_refresh_and_snapshot
+  task_name: background_snapshot_all
   time_spec:
     at: {minute: 15}
     every: hour
     n: 1
 - job_id: PNTHZVUF
-  task_name: background_refresh_and_snapshot
+  task_name: background_snapshot_all
   time_spec:
     at: {minute: 45}
     every: hour
