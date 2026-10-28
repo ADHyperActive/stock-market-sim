@@ -1,3 +1,5 @@
+import anvil.google.auth, anvil.google.drive, anvil.google.mail
+from anvil.google.drive import app_files
 """Teacher panel + debug portal. Every callable is teacher-gated: the caller
 must own the simulation. This module never touches production systems; it
 operates only on this app's own tables with fictional users.

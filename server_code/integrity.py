@@ -1,3 +1,5 @@
+import anvil.google.auth, anvil.google.drive, anvil.google.mail
+from anvil.google.drive import app_files
 """Integrity check + diagnostics + interrupted-order recovery.
 
 Ported from the classroom Apps Script integrity checker

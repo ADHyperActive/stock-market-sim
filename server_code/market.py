@@ -1,3 +1,5 @@
+import anvil.google.auth, anvil.google.drive, anvil.google.mail
+from anvil.google.drive import app_files
 """Live market data via alpaca-py: execution quotes + valuation prices.
 
 This module replaces the TEST stub that used to live in
