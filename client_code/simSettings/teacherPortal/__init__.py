@@ -3,6 +3,7 @@ from anvil import *
 import anvil.google.auth, anvil.google.drive
 from anvil.google.drive import app_files
 import anvil.server
+from anvil_extras.Switch import Switch
 
 
 def _money_text(value):
@@ -82,6 +83,21 @@ class teacherPortal(teacherPortalTemplate):
     self.recover_button = Button(text="Recover interrupted orders")
     self.recover_button.add_event_handler("click", self.run_recover)
     buttons.add_component(self.recover_button)
+    self.export_button = Button(text="Connect Google")
+    self.export_button.add_event_handler("click", self.connect_google)
+    buttons.add_component(self.export_button)
+    self.export_anon_row = FlowPanel()
+    self.export_anon_row.add_component(Label(
+      text="Anonymize student names (on by default):"))
+    self.export_anon = Switch(checked=True)
+    self.export_anon_row.add_component(self.export_anon)
+    self.content_panel.add_component(self.export_anon_row)
+    self.create_sheet_button = Button(text="Create sheet from transactions")
+    self.create_sheet_button.add_event_handler("click", self.create_sheet)
+    self.create_sheet_button.enabled = False
+    buttons.add_component(self.create_sheet_button)
+    self.export_status = Label(text="")
+    self.content_panel.add_component(self.export_status)
     back = Link(text="Back to settings")
     back.add_event_handler(
       "click", lambda **e: open_form("simSettings", simcode=self.simcode))
@@ -179,6 +195,36 @@ class teacherPortal(teacherPortalTemplate):
         action.get("orderId", "?"), action.get("action", "?"),
         action.get("detail", "")))
     self.results_box.text = "\n".join(lines)
+
+  def connect_google(self, **event_args):
+    """Start the Google OAuth flow (client side)."""
+    try:
+      anvil.google.auth.login()
+      self.export_status.text = "Google connected. You can now create the sheet."
+      self.create_sheet_button.enabled = True
+    except Exception as error:
+      self.export_status.text = "Google connection failed: " + str(error)
+
+  def create_sheet(self, **event_args):
+    self.create_sheet_button.enabled = False
+    self.export_status.text = "Creating Google Sheet…"
+    try:
+      result = anvil.server.call(
+        "export_transactions", self.simcode,
+        bool(self.export_anon.checked))
+    except Exception as error:
+      self.export_status.text = "Export failed: " + str(error)
+      self.create_sheet_button.enabled = True
+      return
+    if not result.get("ok"):
+      self.export_status.text = result.get("message", "Export failed.")
+      self.create_sheet_button.enabled = True
+      return
+    self.export_status.text = (
+      "Sheet created: %s (%d row(s), anonymized=%s). "
+      "Open the link and ask Gemini about it." % (
+        result["url"], result.get("rowCount", 0),
+        result.get("anonymized", False)))
 
   def run_integrity(self, **event_args):
     self.results_box.text = "Running integrity check…"
